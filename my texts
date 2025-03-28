@@ -1,3 +1,10 @@
+Here are 3 solid lines on why human advisor feedback is required and its value:
+Human advisor feedback is indispensable for final validation, leveraging expert judgment to ensure compliance answers are accurate, contextually appropriate, and meet real-world standards before submission. The dual-level feedback provides both a high-level performance gauge (L1) and critical, detailed insights into aspects like accuracy, completeness, and tone (L2). This nuanced human assessment captures subtleties often missed by automated evaluations and offers direct, actionable input essential for refining the Gen-AI system effectively.
+
+
+
+
+
 Here are 4 lines explaining the role and value of NLP feedback in your framework:
 NLP feedback utilizes similarity scores (like BERT, ROUGE, cosine) to quantitatively measure the difference between the initial Gen-AI response and the final advisor-submitted answer. This provides an objective, data-driven benchmark within the evaluation framework, serving as a crucial check against potential human subjectivity or bias in advisor feedback. It helps verify consistency by correlating the advisor's qualitative assessment with the measurable textual divergence between the two versions. Ultimately, this quantifies the revision gap and flags instances where human judgment and content similarity diverge significantly.
 
