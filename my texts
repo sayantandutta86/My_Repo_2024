@@ -1,20 +1,63 @@
-Enrichment (Focus on Enhancing the Quality of the Query)
-1. Objective
-The primary objective of the Query Enrichment process, specifically the enhancement step, is to transform raw user queries into well-framed, contextually rich, and unambiguous queries that enable Gen-AI systems to generate accurate, relevant, and high-quality responses. This aligns with the key objectives in the image:
-To provide a level of confidence associated with Gen-AI responses.
-
-To ensure the quality of AI-generated responses by leveraging available context (Osense) and resolving nuances (Cradar).
-2. Scope
-The enhancement part of Query Enrichment focuses on refining the query to ensure it is:
-Clear and unambiguous.
-
-Contextually enriched with relevant details.
-
-Structured to minimize complexity and maximize relevancy for Gen-AI processing.
-This step prepares the query for subsequent tagging processes (Osense, Cradar, and Confidence Tagging) to ensure the Gen-AI system can interpret and respond effectively.
-3. Functional Requirements
-3.1 Query Reframing and Clarification
-Requirement: The system must analyze the raw query to identify vague, ambiguous, or incomplete phrasing and reframe it into a clear and precise question or statement.
-Example: A raw query like "Tell me about space" should be reframed as "Provide an overview of space exploration history and current developments."
-Purpose: To reduce misinterpretation by the Gen-AI system and ensure the query aligns with the user’s intent.
-
+Okay, this is a crucial question for maintaining the reliability and accuracy of your Gen-AI system. Since I don't have access to your specific internal procedures, I will outline a robust and specific change management process that addresses the scenario you described. The business team and maintenance team can use this as a template or compare it against their existing (or planned) procedures.
+Here is a detailed breakdown of a potential Change Management Process for updates to underlying policies and procedures, focusing on the maintenance team's role, especially regarding material changes:
+Core Principle: The Gen-AI system's knowledge base (the vector DB populated with policy chunks) must accurately reflect the current, approved versions of the underlying policy and procedure documents at all times.
+Proposed Change Management Process:
+ * Change Initiation & Notification:
+   * Source: Changes originate from the policy owners/authors (e.g., Legal, HR, Compliance, Operations departments).
+   * Trigger: The owner finalizes and approves a change (minor or material) to a policy or procedure document that is part of the AI's knowledge source.
+   * Notification: A formal notification mechanism must exist. The policy owner must notify the designated 'Maintenance Team Lead' or 'AI Knowledge Base Manager' immediately upon approval of the change.
+     * Content of Notification: Should include:
+       * Identifier of the changed document(s).
+       * Summary of the change(s).
+       * Indication of whether the change is considered 'material' (based on pre-defined criteria – see step 2).
+       * The effective date of the new policy/procedure.
+       * A copy of the updated document and ideally a redlined version showing changes.
+ * Impact Assessment (Performed by Maintenance Team/SME):
+   * Review: The Maintenance Team reviews the notification and the changed document(s).
+   * Materiality Assessment: Determine if the change is 'material'.
+     * Definition of Material Change (Needs to be formally defined internally): A change is typically considered 'material' if it:
+       * Alters key rules, obligations, or prohibitions.
+       * Significantly changes a defined process or workflow.
+       * Impacts user rights, responsibilities, or eligibility criteria.
+       * Introduces new risks or changes risk mitigation strategies.
+       * Requires significant changes in user behavior or system interaction.
+       * Has legal, regulatory, or significant financial implications.
+     * Purpose: Material changes often require more rigorous testing and potentially broader communication.
+   * Impact on AI: Assess how the change affects the information currently indexed in the vector database.
+     * Which existing chunks are now outdated or incorrect?
+     * Are new chunks needed to represent the new information?
+     * Will the change potentially lead to contradictory information if not updated correctly?
+ * Content Update & Re-processing (Maintenance Team):
+   * Document Acquisition: Obtain the final, approved version of the updated policy document.
+   * Re-Chunking: Process the entire updated document (or relevant sections if the process allows for targeted updates) using the established chunking strategy. Critically, old chunks derived from the previous version of this specific document must be identified for removal.
+   * Re-Embedding: Generate new vector embeddings for all the new chunks derived from the updated document.
+ * Vector Database Update (Maintenance Team):
+   * Removal: Identify and delete the old, outdated vector embeddings and their corresponding text chunks from the vector database that originated from the previous version of the changed document. This is crucial to prevent the AI from retrieving incorrect information.
+   * Addition: Add the new vector embeddings and their corresponding text chunks (generated in Step 3) to the vector database.
+   * Timing: This update should ideally be timed to coincide with the official effective date of the new policy, or as soon as possible thereafter, especially for material changes.
+ * Testing & Validation (Maintenance Team, potentially with QA/Business Testers):
+   * Query Testing: Formulate test queries specifically designed to elicit information related to the changed policy area.
+     * Verify that the AI retrieves chunks from the new version of the policy.
+     * Verify that the AI does not retrieve outdated chunks from the old version.
+     * Verify that the AI's synthesized response accurately reflects the updated policy.
+   * Regression Testing: Run a standard set of test queries covering various policy areas to ensure the update hasn't negatively impacted responses related to unchanged policies.
+   * Material Change Specific Testing: If the change was material, testing should be more extensive, covering edge cases and potential ambiguities introduced by the change.
+ * Communication & Rollout:
+   * Internal Communication (Maintenance Team): Inform relevant internal stakeholders (e.g., the business team that asked the question, AI system administrators, relevant support teams) that the knowledge base has been updated, confirming the effective date.
+   * External Communication (If Applicable): If the policy change significantly impacts end-users, the policy owners or relevant business units (not necessarily the AI maintenance team) are typically responsible for broader communication, though the AI system might be updated concurrently.
+ * Ongoing Monitoring (Maintenance Team & Business):
+   * Continuously monitor user queries and AI responses, paying particular attention to areas related to recent policy updates.
+   * Use user feedback mechanisms (if available) to identify potential inaccuracies.
+   * Periodically audit the AI's responses against the source documents, especially for critical or frequently changing policies.
+Maintenance Team's Role Summarized:
+The Maintenance Team is primarily responsible for the technical execution of the change management process within the AI system's knowledge base. Their key responsibilities include:
+ * Receiving and acknowledging change notifications.
+ * Assessing the technical impact of policy changes on the vector database.
+ * Performing the re-chunking and re-embedding of updated content.
+ * Executing the update in the vector database (deleting old data, adding new data).
+ * Conducting technical testing and validation to ensure accuracy.
+ * Communicating the status of updates to internal stakeholders.
+ * Participating in ongoing monitoring and troubleshooting related to knowledge base accuracy.
+ * Maintaining the documentation for this change management process itself.
+Recommendation:
+Formalize this process, including the definition of "material change" and the specific notification procedures, into an official Standard Operating Procedure (SOP) document. Ensure clear ownership and responsibilities are assigned. This provides clarity for the business team and ensures the AI remains a reliable source of information.
