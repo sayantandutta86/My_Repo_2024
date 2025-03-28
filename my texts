@@ -1,3 +1,9 @@
+Here are 4 lines explaining the role and value of NLP feedback in your framework:
+NLP feedback utilizes similarity scores (like BERT, ROUGE, cosine) to quantitatively measure the difference between the initial Gen-AI response and the final advisor-submitted answer. This provides an objective, data-driven benchmark within the evaluation framework, serving as a crucial check against potential human subjectivity or bias in advisor feedback. It helps verify consistency by correlating the advisor's qualitative assessment with the measurable textual divergence between the two versions. Ultimately, this quantifies the revision gap and flags instances where human judgment and content similarity diverge significantly.
+
+
+
+
 Okay, here's a concrete 3-line answer:
  * LLM as a Judge automatically evaluates the Gen-AI's initial compliance answers for quality and accuracy against the provided policy context.
  * It acts as a supplementary check, offering scalable and consistent assessment alongside human advisor reviews and NLP similarity scores.
