@@ -1,3 +1,8 @@
+
+Okay, here is a concise summary of the change management process:
+Policy owners must notify the maintenance team of any policy changes, indicating if they are material. The maintenance team then assesses the impact, re-processes the updated document (re-chunking and re-embedding), and updates the vector database by deleting old entries and adding the new ones. Rigorous testing, especially for material changes, verifies the AI accurately reflects the updated policy information. Finally, the team communicates the successful knowledge base update internally to ensure system reliability.
+
+
 Okay, this is a crucial question for maintaining the reliability and accuracy of your Gen-AI system. Since I don't have access to your specific internal procedures, I will outline a robust and specific change management process that addresses the scenario you described. The business team and maintenance team can use this as a template or compare it against their existing (or planned) procedures.
 Here is a detailed breakdown of a potential Change Management Process for updates to underlying policies and procedures, focusing on the maintenance team's role, especially regarding material changes:
 Core Principle: The Gen-AI system's knowledge base (the vector DB populated with policy chunks) must accurately reflect the current, approved versions of the underlying policy and procedure documents at all times.
