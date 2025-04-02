@@ -2,6 +2,29 @@ Here are 3 solid lines on why human advisor feedback is required and its value:
 Human advisor feedback is indispensable for final validation, leveraging expert judgment to ensure compliance answers are accurate, contextually appropriate, and meet real-world standards before submission. The dual-level feedback provides both a high-level performance gauge (L1) and critical, detailed insights into aspects like accuracy, completeness, and tone (L2). This nuanced human assessment captures subtleties often missed by automated evaluations and offers direct, actionable input essential for refining the Gen-AI system effectively.
 
 
+------
+
+Section 3.3: Model Development and TestingProbing Question 1:
+The document states that Avaloq is the core banking system providing data for MAST, and it’s being rolled out across various GPB locations. Since the Asia implementation (Hong Kong and Singapore) has been delayed to the end of 2024 due to the global platform migration project, how will this delay impact the model’s ability to detect market abuse in those regions in the interim? Are there temporary measures in place to ensure coverage?
+(Source: Page 6, Section 3.3 - Data Sources and deployment details)Finding 1:
+It’s noted that the model was developed by the vendor (TradingHub) without using HSBC customer data, but testing involved customer trade and order data from 2019, 2020, and 2021. This raises a question about how well the model was tailored to GPB’s specific client behaviors before testing. There’s no mention of how the vendor ensured the model’s relevance to GPB’s unique risk profile during development—something I’d expect to see for a tool this critical.
+(Source: Page 6, Section 3.3 - "The model underlying logic and user interface are fully developed by the vendor where no HSBC customer trade data has been used during the development process")Probing Question 2:
+External data sources like prices from Exchange Data International, Tick Data Inc., and news feeds are listed as inputs. Can you explain how these external sources are integrated into MAST and how they specifically contribute to detecting market abuse? For instance, are news feeds used to flag potential insider trading?
+(Source: Page 74, Section 3.3 - Table of data sources)Model Methodology (Section 3.1: Introduction - Impact & Section 3.2: Business Requirements - Impact)Probing Question 3:
+The document mentions that MAST uses "various metrics" to identify potential market abuse, with alerts triggered when a USD value (estimated gain from abusive behavior) exceeds a threshold. Could you provide more detail on what these metrics are? Are they standard ones like unusual price movements or spoofing indicators, or are they customized for GPB clients? Without specifics, it’s hard to gauge how comprehensive the approach is.
+(Source: Page 1 & Page 5, Sections 3.1 & 3.2 - "MAST aims to identify instances of different types of potential market abuse behaviours through various metrics")Finding 2:
+The methodology describes daily data processing and alert reviews by analysts, but there’s no mention of how often the model itself is updated or recalibrated. Markets evolve, and so do abusive behaviors—how is MAST kept current? Is there a plan for periodic reviews to adjust thresholds or metrics as needed?
+(Source: Page 1, Section 3.1 - "The model processes data sent by HSBC on a daily basis and Surveillance analysts will review alerts whenever one is generated")Probing Question 4:
+The USD value threshold for triggering alerts is set by the "model user." Who qualifies as a model user, and how is consistency ensured across different regions or analysts in setting these thresholds? Variability here could lead to uneven detection rates.
+(Source: Page 1, Section 3.1 - "A breach occurs whenever a USD Value… exceeds an associated threshold set by the model user")Model Specification and Development (Section 3.3: Model Development and Testing)Probing Question 5:
+Since the model’s logic and user interface were fully developed by TradingHub, what level of oversight or input did HSBC provide during this process? Was there any collaboration to ensure the algorithms align with HSBC’s specific regulatory needs and GPB’s risk profile, or was it entirely vendor-driven?
+(Source: Page 6, Section 3.3 - "The model underlying logic and user interface are fully developed by the vendor")Finding 3:
+There’s no indication of internal validation or testing of the model’s algorithms by HSBC teams before deployment. For a model tied to regulatory compliance (e.g., EU MAR, UK FCA Handbook), I’d expect some independent verification to confirm its effectiveness. Was this done, or are we relying solely on the vendor’s assurances?
+(Source: Page 6, Section 3.3 - Lack of mention of HSBC internal validation)
+
+-----
+
+
 
 
 
