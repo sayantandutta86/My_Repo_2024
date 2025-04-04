@@ -1,21 +1,296 @@
-Okay, here is a point-by-point summary of the EU regulatory landscape for developing chatbots in the banking compliance space:
- * No Single Dedicated Act: There isn't one specific EU law solely for "chatbots in banking compliance." Compliance involves adhering to several regulations.
- * EU AI Act (Upcoming): This is the main horizontal regulation for AI.
-   * It uses a risk-based approach (Unacceptable, High, Limited, Minimal Risk).
-   * Chatbots in banking compliance could be classified as High-Risk if they influence access to financial services (e.g., creditworthiness assessment) or are used in critical compliance functions.
-   * High-Risk classification imposes strict rules on data, documentation, oversight, robustness, and security before deployment.
-   * If purely informational, they might be Limited Risk, mainly requiring transparency (users must know it's AI).
-   * The Act is agreed upon and will enter into force in phases over the next few years.
- * GDPR (General Data Protection Regulation - Existing & Crucial):
-   * Applies because chatbots process personal data (customer details, queries).
-   * Requires lawful basis for processing, transparency, data security, data minimization, and upholding user rights (access, deletion, etc.).
- * DORA (Digital Operational Resilience Act - Applicable since Jan 2025):
-   * Sets requirements for ICT risk management, cybersecurity, incident reporting, and resilience testing for financial institutions.
-   * Covers the chatbot's underlying technology, operational risks, and risks associated with third-party AI providers.
- * Specific Financial Regulations (Existing):
-   * MiFID II/MiFIR: Apply if the chatbot provides investment advice or information (rules on suitability, appropriateness, transparency).
-   * AML/CFT Directives: Apply if the chatbot is involved in Know Your Customer (KYC), customer onboarding, or transaction monitoring.
-   * PSD2: Applies if the chatbot facilitates payments or accesses account data (rules on Strong Customer Authentication - SCA).
- * EBA/ESMA Guidelines (Existing):
-   * The European Banking Authority (EBA) and European Securities and Markets Authority (ESMA) issue guidelines on relevant topics like ICT risk, outsourcing, and internal governance which influence how banks must implement and manage technologies like chatbots.
-In essence, developing compliant banking chatbots in the EU requires meeting the upcoming AI-specific rules of the AI Act, robust data protection under GDPR, operational resilience under DORA, and adherence to existing financial sector regulations relevant to the chatbot's specific function.
+# -*- coding: utf-8 -*-
+"""
+This script performs topic modeling and keyword/phrase extraction 
+on a list of user queries using SpaCy, Gensim, Scikit-learn, and WordCloud.
+"""
+
+# --- 1. Import Libraries ---
+import pandas as pd
+import spacy
+import re
+from collections import Counter
+
+# Gensim for Topic Modeling
+import gensim
+import gensim.corpora as corpora
+from gensim.models import LdaMulticore # Using multicore for potentially faster processing
+
+# Scikit-learn for TF-IDF
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# WordCloud for Visualization
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+# --- 2. Download and Load SpaCy Model ---
+# You might need to run this once in your terminal or notebook:
+# python -m spacy download en_core_web_sm 
+# Or choose a larger model like en_core_web_md or en_core_web_lg for potentially better results
+try:
+    nlp = spacy.load("en_core_web_sm") # Load the small English model
+except OSError:
+    print("Downloading SpaCy 'en_core_web_sm' model...")
+    spacy.cli.download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+    
+print("SpaCy model loaded.")
+
+# --- 3. Load Data ---
+# Create a sample DataFrame (replace this with loading your actual data)
+data = {
+    'query': [
+        "How to reset my password?",
+        "What are the store opening hours?",
+        "I need help with my account login.",
+        "Can I change my delivery address?",
+        "Tell me about return policy.",
+        "Where is the nearest branch located?",
+        "Password recovery assistance required.",
+        "Information about product warranty.",
+        "How do I update my contact details?",
+        "What is the process for returning an item?",
+        "Store locator and opening times.",
+        "Trouble accessing my online account.",
+        "Change shipping information.",
+        "Warranty details for electronics.",
+        "Account settings update instructions.",
+        "How to make a return?",
+        "Find store location.",
+        "Login problems and password issues.",
+        "Update shipping address details.",
+        "Product guarantee information."
+    ]
+}
+df = pd.DataFrame(data)
+print(f"Loaded DataFrame with {len(df)} queries.")
+print(df.head())
+
+# --- 4. Preprocess Text using SpaCy ---
+# Increase max_length if you have very long queries
+# nlp.max_length = 1500000 
+
+def preprocess_text(text):
+    """
+    Cleans and preprocesses text using SpaCy:
+    - Lowercases
+    - Removes punctuation and numbers (optional, depends on context)
+    - Tokenizes
+    - Lemmatizes
+    - Removes stop words
+    - Filters short tokens
+    """
+    # Process the text with SpaCy
+    doc = nlp(text.lower()) 
+    
+    # Lemmatize and remove stop words, punctuation, and short tokens
+    processed_tokens = [
+        token.lemma_ for token in doc 
+        if not token.is_stop         # Remove stop words
+        and not token.is_punct     # Remove punctuation
+        # and token.is_alpha       # Optionally, keep only alphabetic tokens
+        and len(token.lemma_) > 2  # Remove very short tokens/lemmas
+    ]
+    
+    return processed_tokens
+
+# Apply preprocessing to the query column
+# This creates a new column with lists of processed tokens
+print("\nPreprocessing text...")
+df['processed_tokens'] = df['query'].apply(preprocess_text)
+print("Preprocessing complete.")
+print(df[['query', 'processed_tokens']].head())
+
+# --- 5. Topic Modeling (LDA using Gensim) ---
+print("\nStarting Topic Modeling (LDA)...")
+
+# Get the lists of tokens for Gensim
+processed_data = df['processed_tokens'].tolist()
+
+# Create Dictionary: Maps each unique word to an ID
+id2word = corpora.Dictionary(processed_data)
+# Filter extremes (optional but often helpful)
+# id2word.filter_extremes(no_below=2, no_above=0.8) # Word must appear in at least 2 docs, no more than 80%
+
+# Create Corpus: Term Document Frequency (Bag-of-Words)
+# For each document, it creates a list of (word_id, word_frequency) tuples.
+corpus = [id2word.doc2bow(text) for text in processed_data]
+
+# --- Build LDA model ---
+# Define the number of topics (this often requires experimentation)
+num_topics = 4 # Let's assume 4 topics for this example dataset
+
+# Use LdaMulticore for potentially faster training on multi-core CPUs
+# workers=None uses all available cores
+# passes determines how often the model iterates over the whole corpus
+# random_state for reproducibility
+lda_model = LdaMulticore(corpus=corpus,
+                         id2word=id2word,
+                         num_topics=num_topics, 
+                         random_state=100,
+                         chunksize=10, # Process 10 documents at a time
+                         passes=10,
+                         per_word_topics=True,
+                         workers=None) 
+
+print(f"\nIdentified {num_topics} Topics (Top words per topic):")
+# Print the Keyword in the topics
+topics = lda_model.print_topics(num_words=5) # Show top 5 words per topic
+for i, topic in enumerate(topics):
+    print(f"Topic {i}: {topic[1]}")
+
+# --- 6. Categorize Queries by Dominant Topic ---
+print("\nAssigning dominant topic to each query...")
+
+def get_dominant_topic(bow):
+    """Finds the dominant topic for a given document's bag-of-words."""
+    if not bow: # Handle empty preprocessed lists
+        return None, 0.0
+    topic_dist = lda_model.get_document_topics(bow, minimum_probability=0.0)
+    # Sort topics by probability (descending)
+    dominant_topic = sorted(topic_dist, key=lambda x: x[1], reverse=True)[0]
+    return dominant_topic[0], dominant_topic[1] # Return topic index and probability
+
+# Apply the function to each document's corpus representation
+topic_results = [get_dominant_topic(doc_bow) for doc_bow in corpus]
+
+# Add the results to the DataFrame
+df['dominant_topic'] = [result[0] if result is not None else -1 for result in topic_results]
+df['topic_probability'] = [result[1] if result is not None else 0.0 for result in topic_results]
+
+print("Topic assignment complete.")
+print(df[['query', 'dominant_topic', 'topic_probability']].head())
+
+# Display query counts per topic
+print("\nQuery counts per topic:")
+print(df['dominant_topic'].value_counts())
+
+# --- 7. Visualize Topics using Word Clouds ---
+print("\nGenerating Word Clouds for Topics...")
+
+plt.figure(figsize=(15, 10)) # Adjust figure size as needed
+
+# Get topic terms and weights for word cloud generation
+topic_word_weights = lda_model.show_topics(num_topics=num_topics, num_words=20, formatted=False)
+
+for i, topic in enumerate(topic_word_weights):
+    topic_index = topic[0]
+    # Create a dictionary of word:probability for the word cloud
+    word_freq = {word: prob for word, prob in topic[1]}
+    
+    # Generate Word Cloud
+    wc = WordCloud(width=400, height=300, background_color='white', collocations=False).generate_from_frequencies(word_freq)
+    
+    # Plotting
+    plt.subplot(2, (num_topics + 1) // 2, i + 1) # Adjust subplot layout dynamically
+    plt.imshow(wc, interpolation='bilinear')
+    plt.axis('off')
+    plt.title(f'Topic {topic_index}')
+
+plt.suptitle("Word Clouds for Identified Topics", fontsize=16)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # Adjust layout to prevent title overlap
+plt.show()
+
+
+# --- 8. Extract Important Words and Phrases ---
+
+# --- 8a. Important Words (using TF-IDF) ---
+print("\nExtracting Important Words using TF-IDF...")
+
+# We need the preprocessed text joined back into strings for TfidfVectorizer
+df['processed_text_joined'] = df['processed_tokens'].apply(lambda tokens: ' '.join(tokens))
+
+# Initialize TF-IDF Vectorizer
+# max_features limits the number of words considered
+tfidf_vectorizer = TfidfVectorizer(max_df=0.90, min_df=2, max_features=1000) 
+
+# Fit and transform the processed text
+tfidf_matrix = tfidf_vectorizer.fit_transform(df['processed_text_joined'])
+
+# Get feature names (the words)
+feature_names = tfidf_vectorizer.get_feature_names_out()
+
+# Calculate the sum of TF-IDF scores for each word across all documents
+# This gives a measure of overall importance
+word_scores = tfidf_matrix.sum(axis=0).A1 # .A1 converts matrix row to flat numpy array
+word_importance_dict = dict(zip(feature_names, word_scores))
+
+# Rank words by importance (descending order)
+ranked_words = sorted(word_importance_dict.items(), key=lambda item: item[1], reverse=True)
+
+print("\nTop 15 Important Words (TF-IDF):")
+print(ranked_words[:15])
+
+
+# --- 8b. Important Phrases (using SpaCy Noun Chunks) ---
+print("\nExtracting Important Phrases using SpaCy Noun Chunks...")
+
+all_phrases = []
+# Iterate through original queries to extract meaningful chunks
+for query in df['query']:
+    doc = nlp(query.lower()) # Process original query (lower case for consistency)
+    # Extract noun chunks, convert to text, and clean up spaces
+    phrases = [chunk.text.strip() for chunk in doc.noun_chunks]
+    # Optional: Filter phrases (e.g., remove very short ones or stop word only phrases)
+    filtered_phrases = [p for p in phrases if len(p.split()) > 1] # Keep phrases with more than one word
+    all_phrases.extend(filtered_phrases)
+
+# Count phrase frequencies
+phrase_counts = Counter(all_phrases)
+
+# Rank phrases by frequency
+ranked_phrases = phrase_counts.most_common() # most_common() already sorts by frequency
+
+print("\nTop 15 Important Phrases (Noun Chunk Frequency):")
+print(ranked_phrases[:15])
+
+
+# --- 9. Rank Words and Phrases (Already done in step 8) ---
+# The `ranked_words` and `ranked_phrases` variables hold the ranked lists.
+
+
+# --- 10. Visualize Keywords and Phrases using Word Clouds ---
+print("\nGenerating Word Clouds for Top Words and Phrases...")
+
+plt.figure(figsize=(12, 6))
+
+# --- Word Cloud for Top Words (TF-IDF) ---
+if ranked_words:
+    top_words_dict = dict(ranked_words[:50]) # Take top 50 for the cloud
+    wc_words = WordCloud(width=600, height=400, background_color='white', collocations=False).generate_from_frequencies(top_words_dict)
+    
+    plt.subplot(1, 2, 1) # 1 row, 2 columns, first plot
+    plt.imshow(wc_words, interpolation='bilinear')
+    plt.axis('off')
+    plt.title('Top Important Words (TF-IDF)')
+else:
+    print("No significant words found via TF-IDF to generate a word cloud.")
+    plt.subplot(1, 2, 1)
+    plt.text(0.5, 0.5, 'No significant words found', horizontalalignment='center', verticalalignment='center')
+    plt.axis('off')
+    plt.title('Top Important Words (TF-IDF)')
+
+
+# --- Word Cloud for Top Phrases (Noun Chunks) ---
+if ranked_phrases:
+    # WordCloud expects frequencies, Counter provides them directly
+    # Convert list of tuples to dict for WordCloud
+    top_phrases_dict = dict(ranked_phrases[:50]) # Take top 50 
+    wc_phrases = WordCloud(width=600, height=400, background_color='white', collocations=True).generate_from_frequencies(top_phrases_dict) # collocations=True might group related phrases visually
+
+    plt.subplot(1, 2, 2) # 1 row, 2 columns, second plot
+    plt.imshow(wc_phrases, interpolation='bilinear')
+    plt.axis('off')
+    plt.title('Top Important Phrases (Noun Chunks)')
+else:
+    print("No significant phrases found via Noun Chunks to generate a word cloud.")
+    plt.subplot(1, 2, 2)
+    plt.text(0.5, 0.5, 'No significant phrases found', horizontalalignment='center', verticalalignment='center')
+    plt.axis('off')
+    plt.title('Top Important Phrases (Noun Chunks)')
+
+
+plt.suptitle("Word Clouds for Overall Important Terms", fontsize=16)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
+
+print("\n--- Script Finished ---")
