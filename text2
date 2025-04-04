@@ -1,0 +1,35 @@
+Based on the provided document "t2.pdf", here are the detailed business and production implementation requirements for Qsense and Qradar within the ADA Query Pre-processing Framework:
+Overall Framework Goal:
+ * The primary objective of the ADA Query Pre-processing Framework, which includes Qsense and Qradar, is to provide a level of confidence associated with Generative AI (GenAI) responses.
+ * The quality of the AI-generated response depends on the available context in the knowledge base (assessed by Qsense) and the nuances needed to resolve the query (assessed by Qradar).
+ * The outputs from Qsense (relevancy) and Qradar (complexity) determine the confidence tagging (Red-Amber-Green) for the GenAI response, guiding advisors on how to review it.
+Qsense Requirements:
+Business Requirements:
+ * Assess Query Relevancy: Determine if a user query is relevant to its tagged 'request type' and the associated policy text.
+ * Improve GenAI Answers: Ensure higher relevancy to policy texts and request types to increase the chances of generating meaningful answers from GenAI. For example, an 'Employee Compliance' query should contain relevant keywords and have high similarity with Employee Compliance policy content.
+ * Assign Relevancy Tag: Tag queries as 'Relevant' or 'Irrelevant' based on the combined results of its analysis methods.
+Production Implementation Requirements:
+ * Similarity Search:
+   * Perform similarity searches between the query and policy chunks in the knowledge base.
+   * Utilize Lexical similarity using normalized BM25 (sparse search), as it proved most effective compared to dense search/cosine similarity.
+   * Apply a similarity threshold of 0.70 based on analysis.
+ * Entity Presence Check:
+   * Maintain an entity list prepared from the knowledge base, past queries, and refined using business acumen.
+   * Check for the presence of these entities within the user query.
+   * Use a fuzzy search method to account for spelling variations, case mismatches, etc..
+   * Apply a match threshold determined through iterative analysis.
+Qradar Requirements:
+Business Requirements:
+ * Assess Query Complexity: Evaluate the complexity level of the query, which affects the GenAI's ability to produce an acceptable response.
+ * Identify Need for Human Intervention: Detect queries requiring human intervention due to factors like requests for approval, sensitive information (breaches, security alerts), or references to third-party resolutions/external systems not accessible by the GenAI.
+ * Guide Advisor Review: Use complexity tagging to help advisors review GenAI responses with appropriate caution.
+ * Assign Complexity Tag: Categorize queries based on complexity and sensitivity:
+   * "Complex & Sensitive": If the query involves sensitive information (breaches, alerts) and seeks approval/clearance.
+   * "Complex": If the query seeks approval or clearance.
+   * "Low Complexity" (implied as "suitable" in ): For other queries asking for information, advice, or clarification.
+Production Implementation Requirements:
+ * Linguistic Pattern Analysis: Analyze the linguistic patterns within the query text to determine its complexity level.
+ * Categorization Logic: Implement logic to identify specific patterns:
+   * Intent to seek approval, permission, or clearance.
+   * References to sensitive scenarios like breaches or security alerts.
+   * References outside the available knowledge base (though the implementation details for this specific point aren't fully elaborated in the provided text).
