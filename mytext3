@@ -1,0 +1,38 @@
+Here’s a complete and self-contained response to the user’s query about Qradar, formatted with markdown for clarity:
+
+What is Qradar?
+Qradar is a framework designed to assess the complexity of user queries in the context of a generative AI system (referred to as GenAl). It analyzes linguistic patterns and metadata within queries to determine their complexity level, which helps evaluate how effectively GenAl can respond to them.
+
+Why is Qradar Needed?
+Qradar is essential because the complexity of a query directly influences GenAl’s ability to produce accurate and acceptable responses. Simple queries may be handled well by GenAl, but complex ones—such as those requiring approval, permission, or information beyond policy documents—may need additional support or human expertise. By assessing complexity, Qradar ensures that queries are appropriately triaged, improving the reliability of GenAl’s outputs and identifying cases where intervention is necessary.
+
+What is the Methodology?
+Qradar’s methodology involves two primary objectives, along with an additional check for sensitivity:
+Obj-1: Linguistic Pattern Analysis
+This step identifies queries seeking approval, permission, or clearance (e.g., phrases like "seeking your approval" or "provide compliance clearance"). Such queries are deemed high complexity because they require nuanced decision-making and information beyond policy texts, often necessitating human expertise. This is implemented using Python and SpaCy, a natural language processing library, to detect specific linguistic patterns.
+Obj-2: Metadata Analysis
+This step examines query metadata, such as attachment counts or references to attachments (e.g., alphanumeric values suggesting external documents). If attachments are present, and since GenAl cannot process them, it’s assumed the query contains information unavailable to the system, increasing the risk of hallucination (fabricated responses). This is also flagged as high complexity.
+
+Sensitive Topic Detection
+Queries containing keywords related to breaches, alerts, or other urgent topics are marked as sensitive. These require priority handling, regardless of their complexity level.A query flagged by either obj-1 or obj-2 is classified as high complexity, while sensitive keywords indicate a need for urgent attention.
+
+Why Are Three Separate Complexity Categories Made?
+Qradar uses three distinct categories to classify queries based on their complexity and handling needs:
+
+Low Complexity
+Queries that are neither flagged by obj-1 (no approval/permission requests) nor obj-2 (no attachments) and lack sensitive keywords. These are straightforward and suitable for GenAl to handle independently.
+
+High Complexity
+Queries flagged by obj-1 (seeking approval/permission) or obj-2 (containing attachments). These are challenging for GenAl due to the need for external information or nuanced judgment, increasing the likelihood Net of incomplete or inaccurate responses without additional support.
+
+Sensitive
+Queries with keywords like "breach" or "alert," indicating sensitive topics that require priority attention. This category may overlap with high or low complexity but is distinguished by its urgency.
+
+These categories allow Qradar to differentiate between queries GenAl can process autonomously, those needing extra resources, and those demanding immediate action, optimizing the system’s performance and response quality.
+
+What Tech Stack is Used?Qradar relies on:Python: The primary programming language for implementing its logic.SpaCy: A natural language processing library used in obj-1 to analyze linguistic patterns and identify approval or permission requests.Additional standard programming techniques in Python are likely used for obj-2’s metadata checks, though specific libraries beyond SpaCy are not detailed.
+
+Data Dependency
+Qradar depends on:Queries: The text of the user inputs being analyzed.Metadata: Information such as attachment counts or references to external documents within the query.Keyword Lists: A predefined set of sensitive terms (e.g., "breach," "alert") for identifying priority queries.While policy texts are referenced in the broader context (e.g., Osense’s relevancy checks), Qradar’s complexity assessment focuses primarily on the queries and their metadata.
+
+Infrastructure DependencyQradar requires standard computing resources to execute its Python scripts and SpaCy models. This includes:Servers or cloud infrastructure capable of running natural language processing tasks.Potentially scalable systems to handle large volumes of queries efficiently.Specific hardware or platform details are not provided, but typical NLP workloads suggest a need for sufficient processing power and memory.This response addresses all aspects of the query comprehensively, using the provided document and additional context while ignoring irrelevant tangents from the thinking trace.
