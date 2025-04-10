@@ -1,0 +1,231 @@
+# -*- coding: utf-8 -*-
+"""
+Analyzes text data from a pandas DataFrame column to find frequent keywords/phrases,
+generates a word cloud, and provides other visual insights using spaCy.
+"""
+
+import pandas as pd
+import spacy
+from collections import Counter
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import seaborn as sns
+import re # For potential additional cleaning if needed
+
+# --- 1. Data Loading / Simulation ---
+# --- Replace this section with loading your actual data ---
+# Example: df = pd.read_csv('your_data.csv')
+#          text_column_name = 'your_text_column'
+
+# Simulate data for demonstration purposes
+data = {
+    'text_column': [
+        "The quick brown fox jumps over the lazy dog.",
+        "Natural Language Processing with spaCy is powerful.",
+        "Data analysis and machine learning are key skills.",
+        "Visualizing data helps in understanding patterns.",
+        "The lazy dog slept near the brown fox.",
+        "spaCy offers tools for advanced text analysis.",
+        "Machine learning models need good data.",
+        "Understanding text data requires NLP techniques.",
+        "We analyze large datasets for insights.",
+        "Keyword extraction and phrase mining are useful.",
+        "The quick brown fox is a common example.",
+        "Advanced natural language processing requires powerful tools.",
+        "Data analysis often involves machine learning.",
+        "Good data visualization is crucial for communication.",
+        "The brown fox watched the lazy dog.",
+        "Explore spaCy's capabilities for text analysis.",
+        "Machine learning algorithms thrive on quality data.",
+        "NLP helps computers understand human language.",
+        "Insights from large datasets drive business decisions.",
+        "Phrase mining identifies important concepts."
+    ] * 2500 # Multiply to simulate a larger dataset (50k rows)
+}
+df = pd.DataFrame(data)
+text_column_name = 'text_column'
+# --- End of Data Loading / Simulation ---
+
+# --- Configuration ---
+N_TOP_KEYWORDS_PHRASES = 100 # Number of top keywords/phrases to display/use
+N_TOP_FOR_BAR_CHART = 20   # Number of top items for the bar chart visualization
+SPACY_MODEL = 'en_core_web_sm' # Use 'en_core_web_md' or 'en_core_web_lg' for potentially better accuracy but slower processing
+
+# --- 2. Load SpaCy Model ---
+# Download the model if you haven't already: python -m spacy download en_core_web_sm
+try:
+    nlp = spacy.load(SPACY_MODEL)
+    print(f"Successfully loaded spaCy model '{SPACY_MODEL}'")
+except OSError:
+    print(f"spaCy model '{SPACY_MODEL}' not found. Please download it:")
+    print(f"python -m spacy download {SPACY_MODEL}")
+    # Exit or handle appropriately if the model isn't available
+    exit()
+
+# Increase max_length if documents are very long (adjust based on your data)
+# nlp.max_length = 2000000 # Example: 2 million characters
+
+# --- 3 & 4. Preprocessing and Keyword/Phrase Extraction ---
+
+print(f"Processing {len(df)} text entries...")
+
+# Ensure the column is string type, handling potential NaN values
+texts = df[text_column_name].astype(str).fillna('').tolist()
+
+# Lists to store extracted items
+all_single_keywords = []
+all_noun_chunks = []
+all_entities = []
+
+# Define parts of speech to consider for single keywords
+# (NOUN: Noun, PROPN: Proper Noun, ADJ: Adjective)
+# You can adjust this list based on what you consider a "keyword"
+allowed_pos = ['NOUN', 'PROPN', 'ADJ']
+
+# Process texts in batches using nlp.pipe for efficiency
+# Adjust batch_size based on your RAM and text length
+batch_size = 500
+doc_count = 0
+for doc in nlp.pipe(texts, batch_size=batch_size):
+    doc_count += 1
+    if doc_count % 1000 == 0:
+        print(f"Processed {doc_count}/{len(texts)} documents...")
+
+    # --- Extract Single Keywords ---
+    # Lemmatize, lowercase, remove stop words, punctuation, and filter by POS
+    doc_keywords = [
+        token.lemma_.lower()
+        for token in doc
+        if not token.is_stop        # Remove stop words (like 'the', 'a', 'is')
+        and not token.is_punct     # Remove punctuation
+        and not token.is_space     # Remove whitespace tokens
+        and token.pos_ in allowed_pos # Keep only allowed parts of speech
+        and len(token.lemma_) > 1   # Remove single-character tokens (often noise)
+    ]
+    all_single_keywords.extend(doc_keywords)
+
+    # --- Extract Noun Chunks (Phrases) ---
+    # These often represent meaningful concepts (e.g., "machine learning", "data analysis")
+    doc_chunks = []
+    for chunk in doc.noun_chunks:
+        # Process the chunk: lemmatize, lowercase, remove stops/punct within the chunk
+        processed_chunk_tokens = [
+            token.lemma_.lower()
+            for token in chunk
+            if not token.is_stop
+            and not token.is_punct
+            and not token.is_space
+        ]
+        # Join tokens back into a phrase string if any tokens remain
+        if processed_chunk_tokens:
+            phrase = " ".join(processed_chunk_tokens)
+            # Optional: Filter out very short phrases if desired
+            if len(phrase.split()) > 1: # Keep only multi-word phrases
+                 all_noun_chunks.append(phrase)
+
+    # --- Extract Named Entities ---
+    # Identify entities like PERSON, ORG, GPE (Location), etc.
+    for ent in doc.ents:
+        # Store the entity text and its label
+        all_entities.append((ent.text.strip(), ent.label_))
+
+print(f"Finished processing {doc_count} documents.")
+
+# --- 5. Calculate Frequencies ---
+
+# Combine single keywords and noun chunks into one list for overall ranking
+combined_items = all_single_keywords + all_noun_chunks
+
+# Count frequencies
+keyword_phrase_counts = Counter(combined_items)
+
+# Count frequencies of named entity *labels* (types)
+entity_label_counts = Counter(label for text, label in all_entities)
+
+# Count frequencies of specific named entity *text* (optional, can be noisy)
+# entity_text_counts = Counter(text for text, label in all_entities)
+
+# --- 6. Identify Top Keywords/Phrases ---
+
+top_keywords_phrases = keyword_phrase_counts.most_common(N_TOP_KEYWORDS_PHRASES)
+
+top_entity_labels = entity_label_counts.most_common(15) # Top 15 entity types
+
+# --- 7. Generate Word Cloud ---
+
+print("\nGenerating Word Cloud...")
+
+# Create a dictionary suitable for wordcloud input (text: frequency)
+# Using the top N items often produces a cleaner cloud
+wordcloud_data = dict(top_keywords_phrases)
+
+# Check if there's data to plot
+if not wordcloud_data:
+    print("No keywords/phrases found to generate a word cloud.")
+else:
+    # Create the WordCloud object
+    # Adjust parameters like width, height, background_color, colormap as needed
+    wordcloud_vis = WordCloud(
+        width=1000,
+        height=500,
+        background_color='white',
+        colormap='viridis',  # Choose a visually appealing colormap
+        max_words=N_TOP_KEYWORDS_PHRASES, # Limit words in the cloud
+        contour_width=1,
+        contour_color='steelblue',
+        collocations=False # Avoid generating collocations internally, as we already have phrases
+    ).generate_from_frequencies(wordcloud_data)
+
+    # Display the word cloud using matplotlib
+    plt.figure(figsize=(15, 7)) # Adjust figure size
+    plt.imshow(wordcloud_vis, interpolation='bilinear')
+    plt.axis('off') # Hide axes
+    plt.title(f'Top {N_TOP_KEYWORDS_PHRASES} Keywords and Phrases', fontsize=16)
+    plt.tight_layout(pad=0)
+    plt.show()
+
+# --- 8. Generate Other Visualizations ---
+
+# --- a) Bar Chart of Top Keyword/Phrase Frequencies ---
+print(f"\nTop {N_TOP_KEYWORDS_PHRASES} Keywords/Phrases and their Frequencies:")
+for item, freq in top_keywords_phrases:
+    print(f"- {item}: {freq}")
+
+# Check if there's data to plot
+if not top_keywords_phrases:
+     print("\nNo keyword/phrase frequency data to plot.")
+else:
+    # Prepare data for plotting (using top N for clarity)
+    top_df = pd.DataFrame(top_keywords_phrases[:N_TOP_FOR_BAR_CHART], columns=['Keyword/Phrase', 'Frequency'])
+
+    # Create the bar chart using Seaborn
+    plt.figure(figsize=(10, N_TOP_FOR_BAR_CHART * 0.4)) # Adjust size based on number of items
+    sns.barplot(x='Frequency', y='Keyword/Phrase', data=top_df, palette='viridis')
+    plt.title(f'Top {N_TOP_FOR_BAR_CHART} Keyword/Phrase Frequencies', fontsize=14)
+    plt.xlabel('Frequency', fontsize=12)
+    plt.ylabel('Keyword / Phrase', fontsize=12)
+    plt.tight_layout()
+    plt.show()
+
+# --- b) Bar Chart of Top Named Entity Type Frequencies ---
+print(f"\nTop {len(top_entity_labels)} Named Entity Types and their Frequencies:")
+for label, freq in top_entity_labels:
+    print(f"- {label}: {freq}")
+
+# Check if there's data to plot
+if not top_entity_labels:
+    print("\nNo Named Entity data to plot.")
+else:
+    # Prepare data for plotting
+    entity_df = pd.DataFrame(top_entity_labels, columns=['Entity Type', 'Frequency'])
+
+    # Create the bar chart
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x='Frequency', y='Entity Type', data=entity_df, palette='magma')
+    plt.title('Frequency of Named Entity Types', fontsize=14)
+    plt.xlabel('Frequency', fontsize=12)
+    plt.ylabel('Entity Type', fontsize=12)
+    plt.tight_layout()
+    plt.show()
+
+print("\nAnalysis complete.")
