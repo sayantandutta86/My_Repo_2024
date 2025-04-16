@@ -1,0 +1,128 @@
+# Import the spaCy library
+import spacy
+from collections import Counter
+import pandas as pd # Used for displaying results neatly
+import re # For finding attachment terms
+
+# Load the pre-trained English language model from spaCy
+# You might need to download it first by running: python -m spacy download en_core_web_sm
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("Downloading language model 'en_core_web_sm' (this may take a few minutes)...")
+    spacy.cli.download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+
+# --- Sample Data ---
+# Extracted sample queries based on the provided PDF file (abc_1.pdf)
+# Replace this list with your actual list of query strings
+sample_queries = [
+    "HTC plans to attend the CCF Chinasoft Conference from November 15th to 17th. HTC will have two guest speakers flying from Guangzhou to attend the conference. According to the service content of the organizer CCF, the plane tickets and hotel arrangements for the two speakers will be provided by the organizer. Does this require an FCC case to be submitted? How to submit it specifically?",
+    "The Engagement is at pre-contract stage in Archer. Refer the attached excel sheet along with IRQ and RRQ pdf extracts for details of the proposed outsourcing arrangement/engagement. No Red Flags or Risk indicators identified during the screening or the risk assessment. However, since the risk rating on the Engagement is High, consulting AB&C compliance for advice at the pre-contract stage.",
+    "Due to HASE staff's family member passed away, the HASE AMO/Individual HASE staff would like to offer a flower plaque to a HASE staff's family member in relation to grief. Please advise if these scenarios are subject to AB&C requirements and whether this G&E should be in GER system.",
+    "Request to determine relevant AB&C risk representative and obtain guidance on the issues or concerns identified while performing pre-contract control task in Archer. Refer the attachments for details of the proposed outsourcing arrangement/engagement.",
+    "For HBCN, where can I find the latest G&E Pre-approval thresholds and guidance? like below JP one. Many thanks."
+]
+
+# --- EDA Functions ---
+
+def analyze_query(query_text):
+    """
+    Performs NLP analysis on a single query using spaCy.
+
+    Args:
+        query_text (str): The text of the query.
+
+    Returns:
+        spacy.tokens.doc.Doc: The processed spaCy Doc object.
+    """
+    doc = nlp(query_text)
+    return doc
+
+# --- Main Processing and Aggregation ---
+
+# Counters and lists to aggregate data across all queries
+all_entities = Counter()
+all_noun_phrases = Counter()
+all_adjectives = Counter()
+total_tokens = 0
+total_alphanum_gt4 = 0
+total_attachment_terms = 0
+num_queries = len(sample_queries)
+
+# Define attachment-related terms (case-insensitive)
+attachment_keywords = ['attachment', 'attached', 'pdf', 'excel', 'sheet', 'extracts', 'file', 'document']
+# Compile a regex pattern for efficiency
+attachment_pattern = re.compile(r'\b(' + '|'.join(attachment_keywords) + r')\b', re.IGNORECASE)
+
+
+print(f"Starting EDA for {num_queries} queries...")
+
+for i, query in enumerate(sample_queries):
+    # Analyze the current query
+    processed_doc = analyze_query(query)
+
+    # --- Aggregate Data ---
+
+    # Entities (text content of the entity)
+    all_entities.update([ent.text.strip() for ent in processed_doc.ents])
+
+    # Noun Phrases (Noun Chunks)
+    all_noun_phrases.update([chunk.text.strip().lower() for chunk in processed_doc.noun_chunks])
+
+    # Adjectives
+    all_adjectives.update([token.lemma_.lower() for token in processed_doc if token.pos_ == 'ADJ'])
+
+    # Token Count
+    total_tokens += len(processed_doc)
+
+    # Alphanumeric words > length 4
+    total_alphanum_gt4 += len([token for token in processed_doc if token.is_alpha and len(token.text) > 4])
+
+    # Attachment-related terms
+    matches = attachment_pattern.findall(query)
+    total_attachment_terms += len(matches)
+
+    # Optional: Print progress
+    # print(f"Processed query {i+1}/{num_queries}")
+
+
+# --- Overall Summarized Insights ---
+print("\n=== Overall Summarized Insights Across All Queries ===")
+
+# 1. Average Token Count
+average_tokens = total_tokens / num_queries if num_queries > 0 else 0
+print(f"\n1. Average Tokens per Query: {average_tokens:.2f}")
+
+# 2. Total Alphanumeric Words (Length > 4)
+print(f"\n2. Total Alphanumeric Words (Length > 4): {total_alphanum_gt4}")
+
+# 3. Total Attachment-Related Terms Found
+print(f"\n3. Total Attachment-Related Terms ({', '.join(attachment_keywords)}): {total_attachment_terms}")
+
+# 4. Top 20 Named Entities
+print("\n4. Top 20 Named Entities:")
+if all_entities:
+    for entity, count in all_entities.most_common(20):
+        print(f"- {entity}: {count}")
+else:
+    print("- No named entities found.")
+
+# 5. Top 20 Noun Phrases (Noun Chunks)
+print("\n5. Top 20 Noun Phrases:")
+if all_noun_phrases:
+    for phrase, count in all_noun_phrases.most_common(20):
+        print(f"- {phrase}: {count}")
+else:
+    print("- No noun phrases found.")
+
+# 6. Top 20 Adjectives
+print("\n6. Top 20 Adjectives:")
+if all_adjectives:
+    for adj, count in all_adjectives.most_common(20):
+        print(f"- {adj}: {count}")
+else:
+    print("- No adjectives found.")
+
+
+print("\nEDA Complete.")
