@@ -1,38 +1,28 @@
-Okay, here are some probing questions and findings based on my review of the specified sections in the provided model documentation. I've tried to keep the tone constructive and aimed at encouraging clarification or further detail where needed.
-Section 3.2: Business Requirements
- * Finding: The history describes the evolution from manual controls and initial implementations to the current MAST system.
- * Question: Could you elaborate on the specific limitations or failures of the previous surveillance systems (pre-MAST or early MAST versions) that necessitated the enhancements and expansions outlined, particularly concerning the types of market abuse that were not adequately covered?
-Section 4.1.1: In Scope
- * Finding: The scope tables list Legal Entities and Products covered. There's mention of excluding structured products for FX Options.
- * Question: Regarding the exclusion of structured products for FX Options, what is the rationale for this exclusion, and is there an alternative control or plan to address potential market abuse risks associated with these specific products?
- * Finding: The document notes that Layering and Spoofing metrics apply differently across locations (e.g., London, NY, HK having visibility on electronic Deal-to-Market orders for FX).
- * Question: For Layering and Spoofing, could you clarify if the difference in applicability across locations leads to any potential surveillance gaps in regions where electronic order book visibility might be limited? How is this risk mitigated?
-Section 4.3.1: Model History
- * Finding: The document details numerous updates and enhancements implemented over the years, including the introduction of new metrics, asset classes, and functionalities like Client View and Counterparty View.
- * Question: With the introduction of multiple bespoke controls (like Aggressive Facilitation, Multi-Trader Front Running) built using the MAST reporting tool, what process is in place to ensure these custom controls undergo the same level of rigor in terms of validation, threshold setting, and ongoing performance monitoring as the core vendor-provided metrics?
- * Question: The history mentions several instances where enhancements were made based on reviews (e.g., KPMG, RCALA) or specific needs (e.g., replacing legacy tools). Is there a formal process documented for periodically reassessing the model's effectiveness and coverage against evolving market practices and regulatory expectations, beyond specific triggers like audits or tool replacements?
-Section 5.4: Threshold Decision
- * Finding: The section states that threshold decision-making is documented separately, including RCALA review documentation. It also notes thresholds might differ for Client View compared to Trader View.
- * Question: Could you provide more insight into the methodology used for setting the initial thresholds? Was it based purely on data analysis (e.g., percentile analysis), expert judgment, regulatory guidance, or a combination?
- * Question: Section 4.4 shows variations in alert rates per 10,000 trades across metrics and regions. How are thresholds reviewed and potentially recalibrated over time to account for changing market conditions, data volumes, or observed alert effectiveness, ensuring they remain meaningful without generating excessive noise or missing potential abuse?
-Section 5.5.1: Model Testing - Test Results (Based on Section 4.4)
- * Finding: Section 4.4 provides tables showing alert volumes, closure categories, and alert rates per 10,000 trades for different metrics and regions.
- * Question: The data shows a significant number of alerts are closed as "Not Relevant" or "Not Relevant - data quality issue". While some level of false positives is expected, what analysis has been done on these categories to identify root causes (e.g., data quality problems, overly sensitive thresholds, metric logic limitations)? Are there specific action plans to address the main drivers of these non-productive alerts?
- * Question: Table showing alerts per 10k trades indicates variability across metrics/regions. For metrics/regions with very low or zero alert rates, has there been specific testing or analysis (like below-threshold analysis) to confirm that this reflects a lack of abusive behavior rather than a potential lack of model sensitivity?
-Section 5.5.2: Model Testing - Test Conclusions (Based on Section 4.4)
- * Finding: Section 4.4 presents performance statistics. Acceptance criteria seem based on these operational statistics.
- * Question: Beyond the alert volume statistics presented, what qualitative conclusions were drawn from the model testing regarding its ability to correctly identify known market abuse typologies? Was sensitivity testing performed using seeded data or known historical cases?
-Section 7.4: Front Running Allocation Algorithm
- * Finding: The allocation uses a 'perturbation' method, taking a weighted average of probabilities to reduce sensitivity to small timing changes.
- * Question: The document mentions perturbing trade timings by a 'small random fraction'. Could you elaborate on how the magnitude of this 'random fraction' is determined and whether sensitivity analysis was performed to ensure the allocation outcome isn't overly dependent on the specific random values used in the perturbation process?
-Section 8.2: Ramping Identification
- * Finding: Ramping identification looks for a series of trades in one direction followed by a rapid reversal to realize profit from the price movement created. The score considers market impact and nominal height.
- * Question: How does the model differentiate between legitimate trading strategies that might involve building and unwinding a position quickly (e.g., market making, reacting to news) and potentially manipulative ramping activity? Are factors like order book depth, volatility, or news context considered alongside the trading pattern itself?
-Section 10.3: Aggressive Facilitation
- * Finding: This bespoke control leverages MAST Front Running analytics but focuses on identifying instances where a trader aggressively executes a client order, potentially disadvantaging the client. It uses order length compared to a threshold to determine aggressiveness.
- * Question: How was the threshold for determining 'aggressiveness' based on order length established? Does this consider variations in market conditions or instrument liquidity where faster execution might be normal or even required? Is there a risk of misidentifying necessary rapid execution as 'aggressive'?
-Section 12.1: Insider Trading Scoring
- * Finding: The scoring calculates a USD value based on trading activity preceding a price shock. Factors increasing the score include the size of the position built and the proximity of trading to the price shock. Intraday events are now used for Rates.
- * Question: The rationale provided suggests it's 'safer' for an inside trader to trade closer to the event. While plausible, could this assumption potentially down-weight suspicious activity that occurs further out from the event? How does the scoring model balance proximity with other factors like trade size or pattern consistency?
- * Question: For the enhanced Insider Trading metric for Rates using intraday analysis, how sensitive is the USD Value calculation to the accuracy and granularity of the intraday price data and event timestamps? What controls are in place to manage potential data quality issues here?
-I hope these questions are helpful for your peer review exercise! Let me know if you need anything else.
+Okay, I've reviewed the model documentation focusing on the sections you highlighted. Here are some probing questions and findings aimed at seeking clarification and exploring potential areas for discussion during the peer review, specifically concerning model development, methodology, testing, and the final model:
+Peer Review Questions & Findings:
+ * Section 3.2 (Business Requirements - History and Current Situation):
+   * This section outlines the model's journey and enhancements up until late 2021/early 2022. To understand the current context better, could you share how the core business requirements for market abuse surveillance using this model have evolved since then, leading into the planned 2024/2025 updates?
+ * Section 4.1.1 (In Scope):
+   * The tables clearly define the entities and products currently covered. Looking ahead, particularly at the 2024 and 2025 updates, are there concrete plans to expand this scope to include additional entities, regions, or specific product subtypes not listed?
+ * Section 4.3.1 (Model History):
+   * The history mentions the development of a Cross Product Layering and Spoofing MVP in 2023. What were the primary challenges encountered and key insights gained during this MVP phase? How have these learnings shaped the approach for the further enhancements planned in 2024 and 2025?
+ * Section 5.4 (Threshold decision):
+   * The document notes that the specifics of threshold decision-making are documented elsewhere. Could you elaborate on the governance surrounding the setting, review, and adjustment of these critical thresholds? How often are they formally reviewed and potentially recalibrated based on model performance data or shifts in market behaviour?
+ * Section 5.5.1 (Model Testing, Test Results and Test Conclusions):
+   * While this section refers to separate documentation for detailed test results, could you provide a high-level overview of the back-testing strategy employed? What key performance indicators (KPIs) were used to evaluate the model's effectiveness during these tests (e.g., detection rates, false positive ratios)?
+ * Section 5.5.2 (Model Governance and Compliance):
+   * The described governance framework with the MMPS and MDRP appears thorough. How does this framework adapt to the nuances of overseeing a vendor-provided model like Trading Hub? Specifically, how is effective oversight maintained given the potential limitations on visibility into the vendor's proprietary algorithms mentioned elsewhere?
+ * Section 7.4 (Front Running allocation algorithm):
+   * The allocation algorithm incorporates a perturbation method to ensure stability against small input changes. Could you shed more light on how the final allocation weighting is derived after perturbation? Has sensitivity analysis been conducted to understand how different market conditions might affect this allocation?
+ * Section 8.2 (Ramping alert scoring):
+   * The USD Value calculation for ramping alerts incorporates a market impact component that decays over time. How is this decay factor determined and calibrated? Is it static, or does it adapt based on instrument type or market volatility?
+ * Section 10.3 (Aggressive Facilitation):
+   * This metric utilizes the Trading Hub Reporting tool to identify aggressively facilitated trades. What steps are taken to validate the logic within the reporting tool that flags a trade as "aggressively facilitated"? Is there an independent check on this bespoke logic outside of the vendor's environment?
+ * Section 12.1 (Insider Trading Scoring):
+   * The scoring identifies trades with high USD values before a significant price shock. A key challenge is distinguishing illegal insider trading from astute trading based on public information analysis. How does the model methodology attempt to differentiate these, particularly in how "price shock" events are defined and validated as being driven by non-public information?
+ * 2024 Updates:
+   * The 2024 roadmap includes substantial work on Client View and Wash Trading detection, involving threshold analysis by RCALA. Given that identifying wash trades can be complex, especially across diverse assets and conditions, what specific validation exercises confirmed that the RCALA framework adequately captures the intended risk across various scenarios?
+   * Additionally, there's mention of an interim period between the expiry of a model change dispensation (Q1 2024) and the implementation of a new GMBP (end of 2024). What governance procedures are in place for managing necessary model changes during this specific timeframe?
+ * 2025 Updates:
+   * Plans for 2025 include introducing Cross Product Layering and Spoofing (CPLS) for Equities and a new RFQ Front Running metric. What specific surveillance gaps are these designed to close that aren't covered by existing metrics? What are the anticipated main challenges in developing, testing, and validating these new metrics, especially the novel RFQ Front Running concept?
+I hope these points are helpful for your peer review discussion! Let me know if you need anything else.
