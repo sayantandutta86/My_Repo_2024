@@ -1,28 +1,18 @@
-Okay, I've reviewed the model documentation focusing on the sections you highlighted. Here are some probing questions and findings aimed at seeking clarification and exploring potential areas for discussion during the peer review, specifically concerning model development, methodology, testing, and the final model:
-Peer Review Questions & Findings:
- * Section 3.2 (Business Requirements - History and Current Situation):
-   * This section outlines the model's journey and enhancements up until late 2021/early 2022. To understand the current context better, could you share how the core business requirements for market abuse surveillance using this model have evolved since then, leading into the planned 2024/2025 updates?
- * Section 4.1.1 (In Scope):
-   * The tables clearly define the entities and products currently covered. Looking ahead, particularly at the 2024 and 2025 updates, are there concrete plans to expand this scope to include additional entities, regions, or specific product subtypes not listed?
- * Section 4.3.1 (Model History):
-   * The history mentions the development of a Cross Product Layering and Spoofing MVP in 2023. What were the primary challenges encountered and key insights gained during this MVP phase? How have these learnings shaped the approach for the further enhancements planned in 2024 and 2025?
- * Section 5.4 (Threshold decision):
-   * The document notes that the specifics of threshold decision-making are documented elsewhere. Could you elaborate on the governance surrounding the setting, review, and adjustment of these critical thresholds? How often are they formally reviewed and potentially recalibrated based on model performance data or shifts in market behaviour?
- * Section 5.5.1 (Model Testing, Test Results and Test Conclusions):
-   * While this section refers to separate documentation for detailed test results, could you provide a high-level overview of the back-testing strategy employed? What key performance indicators (KPIs) were used to evaluate the model's effectiveness during these tests (e.g., detection rates, false positive ratios)?
- * Section 5.5.2 (Model Governance and Compliance):
-   * The described governance framework with the MMPS and MDRP appears thorough. How does this framework adapt to the nuances of overseeing a vendor-provided model like Trading Hub? Specifically, how is effective oversight maintained given the potential limitations on visibility into the vendor's proprietary algorithms mentioned elsewhere?
- * Section 7.4 (Front Running allocation algorithm):
-   * The allocation algorithm incorporates a perturbation method to ensure stability against small input changes. Could you shed more light on how the final allocation weighting is derived after perturbation? Has sensitivity analysis been conducted to understand how different market conditions might affect this allocation?
- * Section 8.2 (Ramping alert scoring):
-   * The USD Value calculation for ramping alerts incorporates a market impact component that decays over time. How is this decay factor determined and calibrated? Is it static, or does it adapt based on instrument type or market volatility?
- * Section 10.3 (Aggressive Facilitation):
-   * This metric utilizes the Trading Hub Reporting tool to identify aggressively facilitated trades. What steps are taken to validate the logic within the reporting tool that flags a trade as "aggressively facilitated"? Is there an independent check on this bespoke logic outside of the vendor's environment?
- * Section 12.1 (Insider Trading Scoring):
-   * The scoring identifies trades with high USD values before a significant price shock. A key challenge is distinguishing illegal insider trading from astute trading based on public information analysis. How does the model methodology attempt to differentiate these, particularly in how "price shock" events are defined and validated as being driven by non-public information?
- * 2024 Updates:
-   * The 2024 roadmap includes substantial work on Client View and Wash Trading detection, involving threshold analysis by RCALA. Given that identifying wash trades can be complex, especially across diverse assets and conditions, what specific validation exercises confirmed that the RCALA framework adequately captures the intended risk across various scenarios?
-   * Additionally, there's mention of an interim period between the expiry of a model change dispensation (Q1 2024) and the implementation of a new GMBP (end of 2024). What governance procedures are in place for managing necessary model changes during this specific timeframe?
- * 2025 Updates:
-   * Plans for 2025 include introducing Cross Product Layering and Spoofing (CPLS) for Equities and a new RFQ Front Running metric. What specific surveillance gaps are these designed to close that aren't covered by existing metrics? What are the anticipated main challenges in developing, testing, and validating these new metrics, especially the novel RFQ Front Running concept?
-I hope these points are helpful for your peer review discussion! Let me know if you need anything else.
+Based on the review of the highlighted sections related to the 2024 and 2025 updates in the provided model documentation, here are some probing questions and findings:
+Section 3.2 / 4.3.1: Business Requirements / Model History (2024 Updates)
+ * Finding: The documentation mentions the introduction of "Client View" for Wash Trading detection in Equity and Fixed Income for 2024. It also notes RCALA conducted threshold analysis and validation for this.
+   * Question: Regarding the Client View for Wash Trading, what specific challenges were encountered during the validation and threshold setting process, particularly in distinguishing legitimate high volume client activity from potential wash trading? How does the model ensure that the application of the same thresholds used for Trader View is appropriate for Client View, given potential differences in trading patterns?
+ * Finding: Deployment to Tier 2 countries (including AUS, PHL, THA, IDN, KOR, MYS, TWN, VNM) is planned for 2024.
+   * Question: For the Tier 2 country deployment, what specific market structure differences or data availability challenges were identified, and how have the model parameters or thresholds been adapted for these jurisdictions? Have local regulatory nuances in these Tier 2 countries been fully incorporated into the model's logic and alert review procedures?
+ * Finding: A new Group Model Policy (GMP) is mentioned, with consolidation expected by 2024. Changes required by this new policy will be implemented or tracked as backlog remediation.
+   * Question: What is the anticipated impact of the new GMP on the existing MAST model governance and documentation? Is there a risk assessment for potential conflicts between the new GMP requirements and the existing model structure or vendor limitations?
+Section 3.2 / 4.3.1: Business Requirements / Model History (2025 Updates)
+ * Finding: Several new metrics are planned for 2025: Cross Product Layering and Spoofing (CPLS) for Equities, RFQ Front Running, and an enhanced Multi-Trader Front Running (MTFR) metric. Validation and threshold recommendations are associated activities.
+   * Question: For the new 2025 metrics (Equity CPLS, RFQ Front Running, enhanced MTFR), what is the planned approach for validation, particularly concerning the availability of sufficient historical data (especially for RFQ data) and identifying distinct abusive patterns compared to existing metrics?
+   * Question: The enhanced MTFR metric aims to capture instances where client orders are disadvantaged due to connected traders' activities. How will the model define and identify "connected traders," and what data sources will be used for this? What controls are in place to avoid false positives where trading activity appears connected but isn't collusive?
+   * Question: Given the introduction of multiple new, potentially complex metrics in 2025, what is the plan for user training and ensuring reviewer competency in analysing alerts from these new scenarios (Equity CPLS, RFQ FR, enhanced MTFR)?
+ * Finding: The Model Risk Governance (MRG) team has agreed to review the model risk rating in 2025.
+   * Question: What are the key criteria or triggers that will inform the MRG review of the model risk rating in 2025? Will the introduction and performance of the new 2025 metrics be a primary factor in this reassessment?
+Sections 7.4, 8.2, 10.3, 12.1 (Methodology/Specification)
+ * Finding: While these sections (Front Running Allocation, Ramping Identification, Aggressive Facilitation, Insider Trading Scoring) are listed for review, the provided text extracts focusing on 2024/2025 updates do not appear to contain specific modifications to these existing methodologies for those years. The updates seem focused on adding new metrics or views (Client View, new 2025 metrics).
+   * Question: Can it be confirmed that no specific changes to the core logic or scoring methodology for the existing metrics detailed in sections 7.4, 8.2, 10.3, and 12.1 are planned as part of the 2024 or 2025 updates, beyond those implicitly affected by broader changes like intraday data usage (introduced prior) or potential GMP impacts?
