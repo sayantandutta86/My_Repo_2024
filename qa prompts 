@@ -1,0 +1,118 @@
+Okay, here are Python prompts designed to instruct a Large Language Model (LLM) to evaluate advisor responses based on the metrics defined in your QA document.
+These prompts assume you have the advisor's response stored in a Python variable named advisor_response. The prompts guide the LLM to output a Python list containing evaluation details for each metric.
+
+Combined Prompt (Recommended)
+This single prompt evaluates all four metrics at once, which is generally more efficient for an LLM framework.
+# Assume 'advisor_response' contains the text of the advisor's response
+advisor_response = """
+[Insert the actual advisor response text here]
+"""
+
+combined_prompt = f"""
+Analyze the following advisor response provided within the triple backticks:
+
+{advisor_response}
+
+Evaluate the response based on the following metrics: Clarity, Rationale, Action, and Consequences/Risk. Use the definitions provided below.
+
+Metric Definitions:
+1.  **Clarity:** Is the advice being provided clear and easy to understand such that the recipient will be able to understand HOW they can comply with the advice?
+2.  **Rationale:** Is there a clear and justifiable rationale for the advice that has been provided and is that contained within the advice such that the recipient will understand WHY the advice is appropriate?
+3.  **Action:** Is there a clear action for the recipient to take (if applicable)? Is there a clearly identified timeframe within which the recipient must take the actions specified? Use 'n/a' if no action is expected or applicable.
+4.  **Consequences/Risk:** Does the advice clearly highlight the consequences or risks of NOT following the requirements specified (if applicable)? Use 'n/a' if consequences/risks are not relevant or applicable.
+
+Output Format:
+Return ONLY a Python list containing exactly four inner lists, one for each metric, in the order [Clarity, Rationale, Action, Consequences/Risk].
+Each inner list must follow the format: `[metric_name, decision, reason]`
+- `metric_name` must be a string: 'Clarity', 'Rationale', 'Action', or 'Consequences/Risk'.
+- `decision` must be a string: 'yes', 'no', or 'n/a'.
+- `reason` must be a string containing a brief explanation for your decision based on the metric definition.
+
+Example Output Structure:
+[
+    ['Clarity', 'yes', 'The advice clearly outlines the steps needed.'],
+    ['Rationale', 'no', 'The reason for the policy restriction was not explained.'],
+    ['Action', 'yes', 'A clear action to update the form by Friday was given.'],
+    ['Consequences/Risk', 'n/a', 'No specific requirements were mentioned, so risks are not applicable.']
+]
+
+Provide only the Python list as the output. Do not include any introductory text or explanation outside the list structure.
+"""
+
+# You would then send 'combined_prompt' to your LLM API
+# and parse the returned string as a Python list.
+# For example:
+# llm_output_string = your_llm_api_call(combined_prompt)
+# import ast
+# evaluation_result = ast.literal_eval(llm_output_string)
+# print(evaluation_result)
+
+*********************************************
+
+Individual Prompts (Alternative)
+If you prefer to evaluate each metric separately, you can use these individual prompts.
+Clarity Prompt:
+clarity_prompt = f"""
+Analyze the following advisor response:
+'''
+{advisor_response}
+'''
+
+Evaluate the response based ONLY on the 'Clarity' metric.
+Clarity Definition: Is the advice being provided clear and easy to understand such that the recipient will be able to understand HOW they can comply with the advice?
+
+Output Format: Return a Python list containing exactly one inner list: [['Clarity', 'yes'/'no'/'n/a', 'Your reasoning here']].
+- The decision must be exactly 'yes', 'no', or 'n/a'.
+- The reasoning should be a brief explanation for your decision based on the definition.
+Provide only the Python list as the output.
+"""
+
+Rationale Prompt:
+rationale_prompt = f"""
+Analyze the following advisor response:
+'''
+{advisor_response}
+'''
+
+Evaluate the response based ONLY on the 'Rationale' metric.
+Rationale Definition: Is there a clear and justifiable rationale for the advice that has been provided and is that contained within the advice such that the recipient will understand WHY the advice is appropriate?
+
+Output Format: Return a Python list containing exactly one inner list: [['Rationale', 'yes'/'no'/'n/a', 'Your reasoning here']].
+- The decision must be exactly 'yes', 'no', or 'n/a'.
+- The reasoning should be a brief explanation for your decision based on the definition.
+Provide only the Python list as the output.
+"""
+
+Action Prompt:
+action_prompt = f"""
+Analyze the following advisor response:
+'''
+{advisor_response}
+'''
+
+Evaluate the response based ONLY on the 'Action' metric.
+Action Definition: Is there a clear action for the recipient to take (if applicable)? Is there a clearly identified timeframe within which the recipient must take the actions specified? Use 'n/a' if no action is expected or applicable based on the response.
+
+Output Format: Return a Python list containing exactly one inner list: [['Action', 'yes'/'no'/'n/a', 'Your reasoning here']].
+- The decision must be exactly 'yes', 'no', or 'n/a'.
+- The reasoning should be a brief explanation for your decision. If 'n/a', explain why no action is applicable based on the definition.
+Provide only the Python list as the output.
+"""
+
+Consequences/Risk Prompt:
+consequences_risk_prompt = f"""
+Analyze the following advisor response:
+'''
+{advisor_response}
+'''
+
+Evaluate the response based ONLY on the 'Consequences/Risk' metric.
+Consequences/Risk Definition: Does the advice clearly highlight the consequences or risks of NOT following the requirements specified (if applicable)? Use 'n/a' if consequences/risks are not relevant or applicable to the advice given.
+
+Output Format: Return a Python list containing exactly one inner list: [['Consequences/Risk', 'yes'/'no'/'n/a', 'Your reasoning here']].
+- The decision must be exactly 'yes', 'no', or 'n/a'.
+- The reasoning should be a brief explanation for your decision. If 'n/a', explain why consequences/risks are not applicable based on the definition.
+Provide only the Python list as the output.
+"""
+
+Remember to replace the placeholder [Insert the actual advisor response text here] with the actual response you want to evaluate before sending the prompt to your LLM. The output from the LLM should then be parsed (e.g., using ast.literal_eval in Python) to get the structured list result.
