@@ -1,0 +1,48 @@
+**Slide Title: Quantified Benefits of Implementing AQUA**  
+
+---
+
+### **Current Challenges**  
+- **Manual QA Process**: 1 hour per review, creating bottlenecks.  
+- **Low Coverage**: Only **11-13%** of queries undergo QA (2024 data).  
+- **Backlog**: ~**87%** of queries (30,075 in 2024) lack QA, increasing compliance risks.  
+- **Human Bias**: Inconsistent reviews (e.g., missed rationale/clarity issues).  
+
+---
+
+### **AQUA’s Quantified Benefits**  
+| **Metric**               | **Current State**       | **With AQUA (Expected)**       |  
+|--------------------------|-------------------------|--------------------------------|  
+| **QA Review Time**        | 1 hour per review       | **50-70% reduction** (AI automation) |  
+| **QA Coverage**           | 13% (2024)              | **Scalable to 50%+**           |  
+| **Negative Feedback Rate**| 10-15% of QA done       | **Reduction by 30-50%** (objective checks)|  
+| **Annual Time Savings**   | —                       | **~2,277 hours** (2024 volume: 4,554 reviews at 50% automation)|  
+
+---
+
+### **Key Proof Points**  
+1. **POC Results**:  
+   - **75% agreement** with human reviews on critical criteria (Clarity, Rationale, Action, Risks).  
+   - **100% accuracy** in Data Classification checks.  
+   - **Objective Insights**: AQUA identified human biases (e.g., missed rationale in Example 1).  
+
+2. **Scalability**:  
+   - **Phase-wise automation** (MVP-1 to MVP-2) ensures gradual scaling with oversight.  
+   - **Increased throughput**: Handle **3x more QA reviews** without additional headcount.  
+
+3. **Cost Efficiency**:  
+   - **Annual Savings**: ~2,277 hours saved (2024) = **$113,850** (assuming $50/hour labor cost).  
+   - **Risk Mitigation**: Reduced compliance penalties via higher coverage and consistency.  
+
+---
+
+### **Expected Outcomes**  
+- **Faster Compliance**: Reduce query closure time (e.g., from 106 days to <30 days).  
+- **Enhanced Accuracy**: AI-driven objectivity minimizes errors.  
+- **Scalable Growth**: Support rising query volumes without QA bottlenecks.  
+
+**Conclusion**: AQUA delivers **efficiency, accuracy, and scalability**, directly addressing HSBC’s QA challenges while cutting costs and risks.  
+
+--- 
+
+*Data sourced from AQUA POC (Pages 10-14) and 2021-2024 QA volumes.*
