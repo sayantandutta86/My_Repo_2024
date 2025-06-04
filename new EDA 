@@ -1,0 +1,385 @@
+import pandas as pd
+import numpy as np
+import spacy
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import Counter
+import re
+from scipy.spatial.distance import cosine
+from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+import warnings
+warnings.filterwarnings('ignore')
+
+# Load spaCy model (download with: python -m spacy download en_core_web_md)
+nlp = spacy.load('en_core_web_md')
+
+class QueryThemeAnalyzer:
+    def __init__(self, df, query_column):
+        self.df = df.copy()
+        self.query_column = query_column
+        self.queries = df[query_column].astype(str).tolist()
+        self.processed_queries = []
+        self.embeddings = None
+        self.tfidf_matrix = None
+        self.clusters = {}
+        
+    def preprocess_queries(self):
+        """Clean and preprocess queries"""
+        print("Preprocessing queries...")
+        
+        processed = []
+        for query in self.queries:
+            # Basic cleaning
+            query = query.lower().strip()
+            query = re.sub(r'[^\w\s]', ' ', query)  # Remove punctuation
+            query = re.sub(r'\s+', ' ', query)  # Remove extra spaces
+            
+            # Process with spaCy
+            doc = nlp(query)
+            # Remove stop words and keep meaningful tokens
+            tokens = [token.lemma_ for token in doc 
+                     if not token.is_stop and not token.is_punct and len(token.text) > 2]
+            
+            processed.append(' '.join(tokens))
+        
+        self.processed_queries = processed
+        return processed
+    
+    def create_embeddings(self):
+        """Create spaCy embeddings for queries"""
+        print("Creating spaCy embeddings...")
+        
+        embeddings = []
+        for query in self.queries:
+            doc = nlp(query)
+            if doc.has_vector:
+                embeddings.append(doc.vector)
+            else:
+                # If no vector, create zero vector
+                embeddings.append(np.zeros(nlp.vocab.vectors_length))
+        
+        self.embeddings = np.array(embeddings)
+        return self.embeddings
+    
+    def create_tfidf_features(self, max_features=1000):
+        """Create TF-IDF features"""
+        print("Creating TF-IDF features...")
+        
+        vectorizer = TfidfVectorizer(
+            max_features=max_features,
+            ngram_range=(1, 2),  # Include bigrams
+            min_df=2,  # Ignore terms that appear in less than 2 documents
+            max_df=0.8  # Ignore terms that appear in more than 80% of documents
+        )
+        
+        self.tfidf_matrix = vectorizer.fit_transform(self.processed_queries)
+        self.tfidf_vectorizer = vectorizer
+        return self.tfidf_matrix
+    
+    def find_optimal_clusters(self, method='kmeans', max_clusters=15):
+        """Find optimal number of clusters using silhouette score"""
+        print(f"Finding optimal clusters for {method}...")
+        
+        if method == 'kmeans':
+            data = self.embeddings if self.embeddings is not None else self.tfidf_matrix.toarray()
+        else:
+            data = self.embeddings
+        
+        silhouette_scores = []
+        K_range = range(2, min(max_clusters, len(self.queries)//2))
+        
+        for k in K_range:
+            if method == 'kmeans':
+                kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+                cluster_labels = kmeans.fit_predict(data)
+            
+            score = silhouette_score(data, cluster_labels)
+            silhouette_scores.append(score)
+        
+        optimal_k = K_range[np.argmax(silhouette_scores)]
+        print(f"Optimal number of clusters: {optimal_k}")
+        
+        # Plot silhouette scores
+        plt.figure(figsize=(10, 6))
+        plt.plot(K_range, silhouette_scores, 'bo-')
+        plt.xlabel('Number of Clusters')
+        plt.ylabel('Silhouette Score')
+        plt.title('Silhouette Score vs Number of Clusters')
+        plt.axvline(x=optimal_k, color='red', linestyle='--', label=f'Optimal k={optimal_k}')
+        plt.legend()
+        plt.show()
+        
+        return optimal_k
+    
+    def cluster_kmeans(self, n_clusters=None):
+        """Perform K-means clustering"""
+        if n_clusters is None:
+            n_clusters = self.find_optimal_clusters('kmeans')
+        
+        print(f"Performing K-means clustering with {n_clusters} clusters...")
+        
+        # Use embeddings if available, otherwise TF-IDF
+        data = self.embeddings if self.embeddings is not None else self.tfidf_matrix.toarray()
+        
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        cluster_labels = kmeans.fit_predict(data)
+        
+        self.clusters['kmeans'] = {
+            'labels': cluster_labels,
+            'centroids': kmeans.cluster_centers_,
+            'model': kmeans
+        }
+        
+        return cluster_labels
+    
+    def cluster_dbscan(self, eps=0.5, min_samples=2):
+        """Perform DBSCAN clustering"""
+        print("Performing DBSCAN clustering...")
+        
+        data = self.embeddings if self.embeddings is not None else self.tfidf_matrix.toarray()
+        
+        dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='cosine')
+        cluster_labels = dbscan.fit_predict(data)
+        
+        n_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
+        print(f"DBSCAN found {n_clusters} clusters")
+        
+        self.clusters['dbscan'] = {
+            'labels': cluster_labels,
+            'model': dbscan
+        }
+        
+        return cluster_labels
+    
+    def hierarchical_clustering(self, n_clusters=None, linkage_method='ward'):
+        """Perform hierarchical clustering"""
+        print("Performing hierarchical clustering...")
+        
+        data = self.embeddings if self.embeddings is not None else self.tfidf_matrix.toarray()
+        
+        # Create linkage matrix
+        if linkage_method == 'ward':
+            linkage_matrix = linkage(data, method='ward')
+        else:
+            linkage_matrix = linkage(data, method=linkage_method, metric='cosine')
+        
+        if n_clusters is None:
+            n_clusters = self.find_optimal_clusters('kmeans')
+        
+        cluster_labels = fcluster(linkage_matrix, n_clusters, criterion='maxclust') - 1
+        
+        self.clusters['hierarchical'] = {
+            'labels': cluster_labels,
+            'linkage_matrix': linkage_matrix
+        }
+        
+        # Plot dendrogram
+        plt.figure(figsize=(12, 8))
+        dendrogram(linkage_matrix, truncate_mode='level', p=5)
+        plt.title('Hierarchical Clustering Dendrogram')
+        plt.xlabel('Sample Index')
+        plt.ylabel('Distance')
+        plt.show()
+        
+        return cluster_labels
+    
+    def extract_cluster_themes(self, method='kmeans'):
+        """Extract themes from clusters using TF-IDF"""
+        if method not in self.clusters:
+            print(f"No clustering results found for method: {method}")
+            return
+        
+        cluster_labels = self.clusters[method]['labels']
+        
+        # Group queries by cluster
+        cluster_themes = {}
+        for cluster_id in set(cluster_labels):
+            if cluster_id == -1:  # Skip noise points in DBSCAN
+                continue
+                
+            cluster_queries = [self.processed_queries[i] for i, label in enumerate(cluster_labels) if label == cluster_id]
+            
+            if len(cluster_queries) == 0:
+                continue
+            
+            # Create TF-IDF for this cluster
+            vectorizer = TfidfVectorizer(max_features=10, stop_words='english')
+            try:
+                tfidf_matrix = vectorizer.fit_transform(cluster_queries)
+                feature_names = vectorizer.get_feature_names_out()
+                
+                # Get average TF-IDF scores
+                mean_scores = np.mean(tfidf_matrix.toarray(), axis=0)
+                
+                # Get top terms
+                top_indices = mean_scores.argsort()[-5:][::-1]
+                top_terms = [feature_names[i] for i in top_indices]
+                
+                cluster_themes[cluster_id] = {
+                    'size': len(cluster_queries),
+                    'top_terms': top_terms,
+                    'sample_queries': cluster_queries[:3]  # Sample queries
+                }
+            except:
+                cluster_themes[cluster_id] = {
+                    'size': len(cluster_queries),
+                    'top_terms': ['insufficient_data'],
+                    'sample_queries': cluster_queries[:3]
+                }
+        
+        return cluster_themes
+    
+    def visualize_clusters(self, method='kmeans', reduction='tsne'):
+        """Visualize clusters in 2D"""
+        if method not in self.clusters:
+            print(f"No clustering results found for method: {method}")
+            return
+        
+        cluster_labels = self.clusters[method]['labels']
+        data = self.embeddings if self.embeddings is not None else self.tfidf_matrix.toarray()
+        
+        # Dimensionality reduction
+        if reduction == 'tsne':
+            reducer = TSNE(n_components=2, random_state=42, perplexity=min(30, len(data)-1))
+        else:
+            reducer = PCA(n_components=2, random_state=42)
+        
+        reduced_data = reducer.fit_transform(data)
+        
+        # Plot
+        plt.figure(figsize=(12, 8))
+        scatter = plt.scatter(reduced_data[:, 0], reduced_data[:, 1], 
+                            c=cluster_labels, cmap='tab10', alpha=0.7)
+        plt.colorbar(scatter)
+        plt.title(f'{method.upper()} Clustering Visualization ({reduction.upper()})')
+        plt.xlabel(f'{reduction.upper()} Component 1')
+        plt.ylabel(f'{reduction.upper()} Component 2')
+        
+        # Add cluster centers for K-means
+        if method == 'kmeans' and 'centroids' in self.clusters[method]:
+            centroids_2d = reducer.transform(self.clusters[method]['centroids'])
+            plt.scatter(centroids_2d[:, 0], centroids_2d[:, 1], 
+                       c='red', marker='x', s=200, linewidths=3, label='Centroids')
+            plt.legend()
+        
+        plt.show()
+    
+    def get_query_similarities(self, query_idx, top_k=5):
+        """Find most similar queries to a given query"""
+        if self.embeddings is None:
+            print("Embeddings not created. Please run create_embeddings() first.")
+            return
+        
+        query_vector = self.embeddings[query_idx]
+        similarities = []
+        
+        for i, other_vector in enumerate(self.embeddings):
+            if i != query_idx:
+                similarity = 1 - cosine(query_vector, other_vector)
+                similarities.append((i, similarity))
+        
+        # Sort by similarity
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        
+        print(f"Query: '{self.queries[query_idx]}'")
+        print(f"\nTop {top_k} similar queries:")
+        for i, (idx, sim) in enumerate(similarities[:top_k]):
+            print(f"{i+1}. ({sim:.3f}) {self.queries[idx]}")
+    
+    def analyze_all(self, methods=['kmeans', 'dbscan', 'hierarchical']):
+        """Run complete analysis pipeline"""
+        print("Starting complete theme analysis...")
+        
+        # Preprocessing
+        self.preprocess_queries()
+        
+        # Create features
+        self.create_embeddings()
+        self.create_tfidf_features()
+        
+        results = {}
+        
+        # Run different clustering methods
+        for method in methods:
+            print(f"\n{'='*50}")
+            print(f"ANALYZING WITH {method.upper()}")
+            print(f"{'='*50}")
+            
+            if method == 'kmeans':
+                self.cluster_kmeans()
+            elif method == 'dbscan':
+                self.cluster_dbscan()
+            elif method == 'hierarchical':
+                self.hierarchical_clustering()
+            
+            # Extract themes
+            themes = self.extract_cluster_themes(method)
+            results[method] = themes
+            
+            # Print results
+            print(f"\n{method.upper()} Results:")
+            for cluster_id, info in themes.items():
+                print(f"\nCluster {cluster_id} (Size: {info['size']}):")
+                print(f"  Key terms: {', '.join(info['top_terms'])}")
+                print(f"  Sample queries:")
+                for query in info['sample_queries']:
+                    print(f"    - {query}")
+            
+            # Visualize
+            self.visualize_clusters(method)
+        
+        return results
+
+# Example usage:
+"""
+# Load your dataframe
+df = pd.read_csv('your_queries.csv')  # Replace with your data
+
+# Initialize analyzer
+analyzer = QueryThemeAnalyzer(df, 'query_column_name')  # Replace with your column name
+
+# Run complete analysis
+results = analyzer.analyze_all()
+
+# Find similar queries to a specific one
+analyzer.get_query_similarities(0, top_k=5)  # Find queries similar to the first one
+
+# You can also run individual methods:
+# analyzer.preprocess_queries()
+# analyzer.create_embeddings()
+# analyzer.create_tfidf_features()
+# analyzer.cluster_kmeans(n_clusters=5)
+# themes = analyzer.extract_cluster_themes('kmeans')
+"""
+
+# If you want to use this with sample data:
+sample_queries = [
+    "How to reset password",
+    "Password recovery help",
+    "Forgot my login credentials",
+    "What are your business hours",
+    "When are you open",
+    "Store hours today",
+    "How to return an item",
+    "Return policy information",
+    "Can I get a refund",
+    "Product not working properly",
+    "Item defective",
+    "Technical support needed",
+    "How to contact customer service",
+    "Need help with my order",
+    "Order status check"
+]
+
+# Create sample dataframe
+sample_df = pd.DataFrame({'queries': sample_queries})
+
+# Run analysis on sample data
+print("Running analysis on sample data...")
+analyzer = QueryThemeAnalyzer(sample_df, 'queries')
+results = analyzer.analyze_all(['kmeans', 'hierarchical'])
