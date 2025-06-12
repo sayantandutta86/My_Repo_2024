@@ -1,0 +1,57 @@
+Of course. Here is a comprehensive, slide-by-slide guide for your presentation on the Qsense and Qradar framework, tailored for business stakeholders with some technical awareness.
+
+Presentation on the ADA Query Pre-processing Framework
+(Start with a confident and engaging opening)
+"Good morning, everyone. Thank you for your time. Today, I'm excited to walk you through a critical innovation for our compliance platform: the ADA Query Pre-processing Framework. At its core, this framework is designed to do one thing: make our Generative AI smarter, safer, and more reliable for our Ask Compliance users and Risk Stewards. We'll be talking about how we're building a layer of trust and intelligence into our AI responses."
+Slide 1: ADA Query Pre-processing Framework
+(This is your high-level overview. Use it to set the context and introduce the end-to-end flow.)
+"Let's start with the big picture. When a user submits a query into the Ask Compliance platform, it doesn't just go straight to the AI. Instead, it embarks on a quick but crucial journey.
+ * The query first travels through our secure RC data ingress/egress platform into what we call the Orchestration layer, which sits at the heart of our RC Gen-AI platform.
+ * Here, the magic happens. The query is analyzed by two key components: Qsense and Qradar. Think of these as two expert analysts. Qsense asks, 'Is this query relevant to what our AI knows?' and Qradar asks, 'How complex is this question?'.
+ * Based on their combined assessment, a Confidence Tag—think of a traffic light: Green, Amber, or Red—is attached to the query.
+ * Finally, the AI-generated response, along with this confidence tag, is sent back to the Risk Steward.
+The key objective here is twofold. First, to provide a clear confidence level for every GenAI response. Second, to acknowledge that the quality of an AI's answer depends heavily on the context we can provide (which is what Qsense handles) and the inherent nuances of the query (which Qradar assesses)."
+Slide 2: Qsense Methodology
+(Now, you'll zoom into the first component: Qsense.)
+"So, how do we determine if a query is relevant? That's the job of Qsense.
+The goal of Qsense is to ensure we're answering questions that are actually within the AI's area of expertise—in this case, Employee Compliance. A highly relevant query leads to a much more effective and accurate AI response.
+We do this in two ways:
+ * Similarity Search: We take the user's query and compare it to our knowledge base of policy documents. We use a sophisticated lexical search method called BM25, which is excellent at matching relevant documents even if the exact keywords aren't used. We've set a similarity threshold to ensure a high standard of relevance.
+ * Entity Search: We also scan the query for specific keywords or 'entities' that are unique to Employee Compliance, like 'Covered Worker' or 'Outside Activity'. We use a 'fuzzy search' for this, which is smart enough to find matches even with misspellings or different phrasings, something a simple keyword search would miss.
+A query is considered 'Relevant' if it either meets our similarity threshold or contains these key entities."
+Slide 3: Qsense Methodology Results
+(This slide is your evidence. Show them that the methodology works.)
+"This isn't just theoretical; we've tested this extensively. We validated the Qsense model with a thousand queries.
+The data speaks for itself. As you can see in the 'Combined Model' table, our approach correctly aligned with the user's tagging in nearly 79% of cases.
+What's particularly insightful are the mismatches:
+ * About 12% of queries that users tagged as 'non-EC' were identified by our model as relevant. This means we're catching compliance-related questions that might have been missed.
+ * Conversely, about 9% of queries users thought were 'EC' were flagged as not relevant by the model, often because they were too vague or poorly framed.
+This demonstrates that Qsense provides a robust and intelligent filter, ensuring that the queries we pass to the GenAI are genuinely suited for it."
+Slide 4: Qradar
+(Transition to the second component: Qradar.)
+"Once we know a query is relevant thanks to Qsense, the next question is, how complex is it? This is where Qradar comes in.
+The complexity of a query is vital because some questions, by their very nature, require human judgment or access to external systems not available to the AI. Qradar helps our advisors spot these cases immediately.
+We categorize queries into three levels of complexity:
+ * High Complexity: These are queries involving sensitive data like security breaches or those explicitly asking for approvals or permissions. These will always require a human in the loop.
+ * Medium Complexity: These are queries that ask for approval or clearance but don't involve sensitive information.
+ * Low Complexity: These are straightforward requests for information, advice, or clarification. These are the ideal candidates for a direct GenAI response.
+This categorization allows us to manage risk effectively and ensures our advisors can apply the right level of scrutiny to the AI's output."
+Slide 5: Combined Results
+(Bring it all together. This is the "so what?" slide for your audience.)
+"Now, let's see what happens when we combine the power of Qsense and Qradar. The result is a simple, intuitive Query Confidence Indicator in the form of traffic lights. This indicator tells our advisors how much trust they should place in the AI-generated response at a glance.
+ * Green: This signifies a high degree of confidence. The query was relevant and had low complexity, making it perfect for AI generation. Based on our analysis of 1000 historical queries, we expect about 39% of queries to fall into this 'green zone'.
+ * Amber: This means 'proceed with caution'. The query might be relevant but complex, or it might have low relevance but is simple in nature. These responses need a closer look.
+ * Red: This indicates the lowest confidence level. The query was not deemed relevant by Qsense and is likely outside the scope of our GenAI's capabilities.
+This traffic light system is not just an indicator; it's a powerful tool for continuous improvement. The feedback provided by our advisors on these tagged responses will be used to continually tune the Qsense and Qradar models, with the goal of maximizing the number of queries that land in the green zone."
+(Optional) Slide 9: Appendix: Examples of Fuzzy Search
+(If you feel the audience is receptive to a brief technical example, you can use this slide.)
+"Just to give you a quick, concrete example of why our technology is so effective. Look at the query on this slide. The user has misspelled 'askCompliance'. A traditional, exact-match search would fail here.
+However, our Fuzzy Search capability correctly identifies 'askCompliance' as the intended entity. This ability to understand user intent, even with typos or varied phrasing, dramatically increases the accuracy of our relevancy tagging and is a perfect example of the built-in intelligence of this framework."
+Conclusion & Next Steps
+(End with a strong summary of the benefits.)
+"In conclusion, the ADA Query Pre-processing Framework, through its Qsense and Qradar components, is a fundamental step forward in how we leverage Generative AI. It allows us to:
+ * Enhance Response Quality by ensuring queries are relevant and suitable for AI.
+ * Manage Risk by identifying complex and sensitive queries that require human oversight.
+ * Boost Advisor Efficiency by providing a clear, at-a-glance confidence indicator.
+This framework is about building a system that is not only powerful but also trustworthy and transparent. Our next steps will involve monitoring its performance during the pilot phase and using advisor feedback to make it even smarter.
+Thank you. I'm now happy to answer any questions you may have."
