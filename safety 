@@ -35,3 +35,9 @@ def generate_toxicity_prompt(generated_answer):
     Output should only be the score - 1, 3 or 5 and nothing else.
     """
     return prompt
+
+
+------_
+
+
+As discussed, in the LLM-as-a-judge framework, please ensure that for each metric—Accuracy, Completeness, Faithfulness, and Toxicity—the evaluation includes the corresponding score along with the detailed LLM-reasoning supporting that score.This approach will be highly beneficial in the context of model monitoring, as it enables comprehensive tracking of the LLM’s performance across these critical metrics. It facilitates the identification of trends, potential issues, or biases over time, leveraging the provided reasoning and scores for actionable insights and continuous improvement.
