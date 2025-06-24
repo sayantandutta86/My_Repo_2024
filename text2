@@ -1,1 +1,73 @@
-Discussion PointsIntegration of Azure Service for PII:Introduced the inbuilt Azure service designed to manage PII across the platformModeration results will be processed at the platform level for consistencyInterpretation and threshold settings assigned to the "we-core" level (likely a core system or team)Agreed not to send data directly to a Large Language Model (LLM) regardless of moderation statusNo explanations will be provided for outcomes with low confidence or "sail break" scores of 1 or 2Audit logs will be securely stored within the Azure service for compliance and traceabilityContent Moderation Categorization:Proposed a three-tier categorization for moderation results: High, Medium, and LowThresholds for each tier adjustable by use case administrators to ensure flexibilityOverall score determined by the maximum value across moderation services (e.g., Harmful: 0-7, PII: 0%-100%, Jailbreak: TRUE/FALSE)Example: High (Harmful: 4-7, PII: ≥95%, Jailbreak: TRUE)Example: Medium (Harmful: 2-3, PII: 69%-94%)Example: Low (Harmful: 0-1, PII: <69%, Jailbreak: FALSE)Control Configurations by Use Case:Controls customizable based on user requirements and aligned with overall scoresHigh Score Controls:Options: Direct LLM processing, selective processing with user confirmation, or no LLM processingMedium Score Controls:Options: Display warning messages with explanations, prompt user confirmation, or show no messagesLow Score Controls:Options: Send email notifications to business leads, log queries with moderation results, block user accounts, classify documents (Internal, Restricted, Highly Restricted)Use Case-Specific Requirements for ADA:Defined requirements for the ADA system across High, Medium, and Low prioritiesHigh Priority:Query processing (direct, selective with confirmation, or no LLM)Alert messages (warnings, confirmations, or none)Audit logs (email notifications, query logging)User management (account blocking)Data integrity (document classification: Internal, Restricted, Highly Restricted)Medium and Low Priorities:Similar options as High priority, with varying implementation urgencyUser Journeys for PII Detection:High Overall Score Journey:User inputs prompt or uploads attachments via UIPII detection triggered using Azure PII, Gemini, or GPT moderationIf PII detected: Alert displayed, LLM processing disabled, reviewer notifiedIf no PII: Request sent to LLM, user receives responseAudit, monitoring, and control summary recordedMedium Overall Score Journey (Selective Processing):User inputs prompt or uploads attachments via UIPII detection triggered using Azure PII and Gemini APIIf PII detected: Alert highlights PII, user forced to edit inputIf no PII: Input sent to reviewer for validationPost-review: If no PII, LLM generates response and sends it to userAutomated monitoring and controls applied throughout
+**MEMORANDUM OF MEETING**  
+
+**To:** All Meeting Attendees  
+**From:** [Your Name], Senior AI Architect  
+**Date:** 26 June 2025  
+**Subject:** MOM - Technical Sync on Qsense Deployment, CMLP Integration & Refactoring Status  
+
+---
+
+### **Executive Summary**  
+This meeting addressed critical technical dependencies for Qsense production deployment, CMLP monitoring data ingestion, and the status of Qsense/Oradar code refactoring. Key outcomes include confirmation of GitHub-managed configurations, incremental CMLP data ingestion strategy, and a pending timeline for refactoring completion contingent on CI/CD pipeline readiness.  
+
+---
+
+### **Key Discussion Points & Decisions**  
+
+#### **1. Qsense Keyword List Access (Post-Deployment)**  
+- **Solution:**  
+  The keyword list and all ancillary configurations reside in the **Orchestration Layer GitHub Repo**.  
+- **Production Protocol:**  
+  Only the **final committed version** of the repo will be deployed to production.  
+- **Action:**  
+  Analytics team to coordinate with RCDP for repository access and version-tracking procedures.  
+
+#### **2. CMLP Model Monitoring Data Ingestion**  
+- **Ingestion Strategy:**  
+  Data will flow incrementally to CMLP. Each update cycle appends **only new data**; historical data remains immutable even if source updates occur.  
+- **Rationale:**  
+  Ensures auditability, reduces storage overhead, and aligns with idempotent ETL design principles.  
+- **Next Step:**  
+  RCDP to share schema specifications and incremental load frequency with Analytics team by **30 June 2025**.  
+
+#### **3. Qsense & Oradar Code Refactoring Status**  
+- **Current State:**  
+  - Refactoring completed in RCDP’s local environment.  
+  - **Blockers:**  
+    - Con-AI IT team must finalize **CI/CD pipeline creation**.  
+    - Pending integration and testing of APIs post-pipeline setup.  
+- **Timeline Commitment:**  
+  Wright (RCDP) to provide a **tentative completion timeline** by **28 June 2025**, contingent on Con-AI IT’s delivery.  
+
+---
+
+### **Critical Dependencies & Risks**  
+| **Item**               | **Owner**       | **Deadline**     | **Risk Mitigation**                  |  
+|-------------------------|-----------------|------------------|--------------------------------------|  
+| CI/CD Pipeline Setup    | Con-AI IT Team  | ASAP             | Daily stand-ups to monitor progress  |  
+| Refactoring Timeline    | Wright (RCDP)   | 28 June 2025     | Escalate delays to program leadership|  
+
+---
+
+### **Action Items**  
+| **Owner**          | **Task**                                                      | **Due Date**   |  
+|--------------------|---------------------------------------------------------------|----------------|  
+| **RCDP Team**      | Grant Analytics team access to Orchestration Layer GitHub Repo | 27 June 2025   |  
+| **Wright (RCDP)**  | Share refactoring completion timeline (post-CI/CD readiness)  | 28 June 2025   |  
+| **Con-AI IT Team** | Confirm CI/CD pipeline delivery date                          | 27 June 2025   |  
+| **Analytics Team** | Review CMLP schema specs and validate incremental logic       | 3 July 2025    |  
+
+---
+
+### **Next Steps**  
+1. RCDP to facilitate a joint session between Con-AI IT and Analytics for pipeline integration specs.  
+2. Weekly technical syncs instituted every **Wednesday, 10:00 AM IST** until refactoring deployment.  
+
+---  
+**Approved by:**  
+[Your Name]  
+*Senior AI Architect*  
+[Contact Information]  
+
+--- 
+**Note:** Flexibility in timelines is acknowledged pending Con-AI IT’s deliverables. Proactive escalation paths are established for blockers.
