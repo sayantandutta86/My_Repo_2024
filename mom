@@ -1,57 +1,124 @@
-Minutes of Meeting – KPI Review (Draft)
-
-KPI: Turnaround Time for First Advice Issue
-
-Action: Analytics team to engage with IT and confirm availability of the “First Advice Issue Date” data column.
+Certainly, Sayantan. Here's the finalized and professional version of the Minutes of Meeting (MoM), ready to be shared with stakeholders:
 
 
-KPI: Requestor Rating
+---
 
-Current Scope: Available only for select query types.
+📄 Minutes of Meeting – KPI Framework Review
+Date: [Insert Date]
+Attendees: [Insert Names if needed]
+Facilitator: [Insert Name]
+Prepared by: [Your Name / Analytics Team]
 
-Action: Suman to assess feasibility of enabling this rating for all request types and Lines of Business.
+
+---
+
+Objective:
+
+To review the current and proposed KPIs relevant to the ADA platform, align on feasibility, actions, and ownership for implementation.
 
 
-KPI: Advisor L1 Feedback on Suggested Responses
+---
 
-Roll-out Target: August 2025
+KPI Discussions & Action Items:
+
+1. KPI: Turnaround Time for First Advice Issue
+
+Action Owner: Analytics Team
+
+Action: Liaise with IT to confirm if the "First Advice Issue Date" column is available in the system for tracking this metric.
+
+
+
+---
+
+2. KPI: Requestor Rating
+
+Current Limitation: Available only for a limited set of query types.
+
+Action Owner: Suman
+
+Action: Explore with IT/Platform team whether the rating functionality can be enabled across all request types and LOBs.
+
+
+
+---
+
+3. KPI: Advisor L1 Feedback on Suggested Responses
+
+Planned Roll-out: August 2025
+
+Action Items:
+
+1. Analytics Team: Finalize feedback text options (L2 feedback) and streamline the L1 feedback format.
+
+
+2. Analytics Team: Prepare a worksheet outlining multiple feedback model proposals.
+
+
+3. Suman: Schedule a review meeting with COE advisors to gather input on the proposed system.
+
+
+4. Suman: Design a detailed flowchart illustrating the ADA user journey, highlighting feedback touchpoints and data capture stages.
+
+
+
+
+
+---
+
+4. KPI: Interaction Count per Query
+
+Action Owner: Analytics Team
+
+Action: Connect with Varun to verify whether this KPI is already being captured or if it needs to be derived using existing data points.
+
+
+
+---
+
+5. KPI: Start of Assessment
+
+Clarification: This KPI is logically similar to “First Assigned Date.”
+
+Action Owner: Suman
+
+Action: Validate if a specific data field exists that distinctly marks the "start of assessment" point.
+
+
+
+---
+
+6. KPI: Use of AI
+
+Definition: To be captured via advisor clicks on the “Use AI Response” button.
+
+Action Owner: Analytics Team
+
+Next Step: Incorporate clickstream data to establish tracking mechanism and logic.
+
+
+
+---
+
+7. KPI: Advisor Clicks on Policy Reference Links in AI Response
+
+Status: Not trackable at present.
+
+Note: Confirmed by Suman that the underlying platform does not support this level of click-tracking currently.
+
+
+
+---
 
 Next Steps:
 
-1. Analytics team to finalize and simplify L1 feedback text options (incorporating L2 feedback).
+Owners to complete above actions by [Insert deadline if applicable].
 
-
-2. Analytics team to create a worksheet with alternative feedback-system proposals.
-
-
-3. Suman to convene a review meeting with COE advisors to gather input on proposed designs.
-
-
-4. Suman to produce a flow diagram illustrating the ADA user journey, highlighting each event and the data points captured.
+Review progress and finalize KPI definitions in the next checkpoint meeting.
 
 
 
+---
 
-KPI: Interaction Count per Query
-
-Action: Analytics team to check with Varun whether this KPI already exists—or identify an approach to derive it.
-
-
-KPI: Start of Assessment
-
-Note: Conceptually aligns with the “First Assigned Date.”
-
-Action: Suman to verify if there is a dedicated data field that marks the actual assessment start time.
-
-
-KPI: Use of AI
-
-Definition: To be measured by advisor clicks on the “Use AI Response” button.
-
-
-KPI: Policy Reference Link Clicks in AI Responses
-
-Status: Tracking not currently possible (confirmed by Suman).
-
-
+Let me know if you’d like this exported as a Word or PDF file for formal circulation.
 
