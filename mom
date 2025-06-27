@@ -1,30 +1,57 @@
-Of course. Here is a professionally revised version of the Minutes of Meeting, structured for clarity and impact, as a senior analytics professional would write it.
-Minutes of Meeting: Employee Compliance Analytics & System Enhancements
-Date: June 26, 2025
-Attendees: Business Stakeholders, Analytics Team (Kavya, Sayantan), Technical Team (Suman)
-Subject: Review of Employee Compliance Module, KPI Definition, and Feature Roadmap
-Executive Summary
-The meeting focused on defining key performance indicators (KPIs) and outlining system enhancements for the Employee Compliance module. Key decisions included the approval to develop a new KPI to track communication overhead ("Interaction Volume per Query") and the need to redesign the current advisor feedback system for improved clarity. Several action items were assigned to the analytics and technical teams to investigate data capture capabilities and track incoming query volume from the ongoing migration.
-Key Decisions & Discussion Points
- * New KPI for Interaction Efficiency:
-   * A new primary KPI, "Interaction Volume per Query," was proposed to measure the number of back-and-forth communications between advisors and users. The core objective is to reduce this metric, thereby alleviating pressure on Service Level Agreements (SLAs).
-   * The strategic implementation of ABA (AI-Based Assistance) and AUA (Automated User Assistance) is expected to be the primary driver in reducing this KPI by delivering more comprehensive, first-touch responses.
- * Advisor Feedback System Overhaul:
-   * The current two-level (L1/L2) advisor feedback mechanism is slated for a comprehensive review and redesign.
-   * The existing model is considered potentially confusing for users and requires simplification to ensure the feedback captured is clear, actionable, and accurately reflects the user experience.
- * Project Update: Employee Compliance Migration:
-   * The migration of "Employee Compliance" to the "ASK Compliance" platform has commenced as of June 2025.
-   * The migration is planned in three tranches, and an initial influx of email-based queries is being observed.
-Action Items (AI)
- * Feature Activation:
-   * AI-01: Suman to investigate and enable the "Requestor Rating" feature for the Employee Compliance module to ensure parity with other active request types.
- * KPI & Measurement Development:
-   * AI-02: Kavya/Sayantan to conduct a detailed analysis for the "Interaction Volume per Query" KPI. This includes defining the precise logic, data capture requirements, and establishing a baseline.
-   * AI-03: Kavya/Sayantan to collaborate with Suman to create a robust methodology for tracking the incoming query volume resulting from the Employee Compliance migration.
-   * AI-04: Kavya/Sayantan to define a new KPI, "Advisor Time-to-Respond (AI-Assisted)," by leveraging timestamps captured when an advisor accesses an AI-suggested response.
- * Technical Feasibility & Data Capture:
-   * AI-05: Suman to determine the technical feasibility of capturing advisor click-stream data, specifically which policy documents or reference links are accessed during case resolution.
-   * AI-06: The development team is to ensure that timestamps for advisor access to AI-generated suggestions are captured accurately to support AI-04.
-Future Roadmap & Ideation
- * AI-Powered Response Formulation: A "Use of AI" feature, intended to help advisors formulate responses, is confirmed to be in the development pipeline.
- * Contextual Advisor Feedback: An idea was proposed to enhance the platform by incorporating contextual feedback mechanisms for the advisor. For example, after an advisor uses a system feature, they could be prompted with questions like, "Did you find the policy reference useful?" or "Was the system-suggested response clear?" This will be considered for future development sprints.
+Minutes of Meeting – KPI Review (Draft)
+
+KPI: Turnaround Time for First Advice Issue
+
+Action: Analytics team to engage with IT and confirm availability of the “First Advice Issue Date” data column.
+
+
+KPI: Requestor Rating
+
+Current Scope: Available only for select query types.
+
+Action: Suman to assess feasibility of enabling this rating for all request types and Lines of Business.
+
+
+KPI: Advisor L1 Feedback on Suggested Responses
+
+Roll-out Target: August 2025
+
+Next Steps:
+
+1. Analytics team to finalize and simplify L1 feedback text options (incorporating L2 feedback).
+
+
+2. Analytics team to create a worksheet with alternative feedback-system proposals.
+
+
+3. Suman to convene a review meeting with COE advisors to gather input on proposed designs.
+
+
+4. Suman to produce a flow diagram illustrating the ADA user journey, highlighting each event and the data points captured.
+
+
+
+
+KPI: Interaction Count per Query
+
+Action: Analytics team to check with Varun whether this KPI already exists—or identify an approach to derive it.
+
+
+KPI: Start of Assessment
+
+Note: Conceptually aligns with the “First Assigned Date.”
+
+Action: Suman to verify if there is a dedicated data field that marks the actual assessment start time.
+
+
+KPI: Use of AI
+
+Definition: To be measured by advisor clicks on the “Use AI Response” button.
+
+
+KPI: Policy Reference Link Clicks in AI Responses
+
+Status: Tracking not currently possible (confirmed by Suman).
+
+
+
