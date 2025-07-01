@@ -1,1 +1,50 @@
-Agenda:Discussion and clarification on semantic search output in the final response format sent by the RCDP team.Review of real-time evaluation metrics.Meeting Notes:Semantic Search Output:The semantic search output is designated for the suggested response part. In production, 5 separate chunks will be received.The semantic search output format will remain consistent regardless of the retrieved policy source (e.g., GPPS and non-GPPS policy documents).RCDP will send sample semantic search output for GPPS and non-GPPS policy documents to Analytics for validation of format consistency across different policy sources.Agreed that RCDP will include a minor alteration to the semantic search output: Along with the chunk identifier, the file name (metadata-1) and section header (metadata-2) will also be presented as separate fields at the beginning of the output.Real-Time Evaluation Metrics:Wright with Ray confirmed that the output format will support real-time evaluation metrics seamlessly without disrupting the format for "latency" and "cost per response" fields.Gen-AI IT Team has completed API connectivity, enabling RCDP to showcase sample responses by the end of the week. Analytics will schedule the meeting accordingly to discuss the same.Agreed that the relevance threshold in Qsense code will be kept in a separate configuration file, ensuring that any changes to the keyword list or relevance threshold will not require production code redeployment.Action Items:RCDP Team: Send sample semantic search output for GPPS and non-GPPS policy documents to Analytics for format validation by [insert deadline, e.g., July 5, 2025].Analytics Team: Schedule a follow-up meeting with RCDP by the end of this week (July 4, 2025) to review the sample responses showcased via the Gen-AI IT Team’s API connectivity.Gen-AI IT Team: Ensure API connectivity is fully operational to support the scheduled showcase of sample responses by July 4, 2025.All Teams: Update the relevance threshold and keyword list in the separate configuration file as needed, ensuring no impact on production code deployment.Next Steps:Follow-up meeting to be scheduled post-validation of semantic search output and review of real-time evaluation metrics.Any additional concerns or updates to be communicated via email by July 6, 2025.
+Here is a report summarizing the performance of Qsense and Qradar on ORRA (Operational Risk and Resilience Assurance) email queries, based on the documents you provided.
+
+Analysis of Qsense and Qradar on ORRA Queries
+This report details the performance of the Qradar and Qsense models on both short and complex ORRA email queries. A Proof of Concept (PoC) was initially conducted on short queries, and the main evaluation was performed on a set of 8 complex queries.
+
+Observations for Short vs. Complex Queries
+Short Queries (Based on PoC):
+
+These are concise and direct, often containing more focused keywords.
+The average word count during the PoC was low, around 10 words.
+They achieved a high average relevancy score of 1.45 with the initial model settings.
+The models performed well, with the relevancy score threshold proving effective.
+Complex Queries:
+
+These queries are significantly longer and more descriptive, with an average word count of 71.25.
+They are more verbose and contain lower keyword density compared to short queries.
+The average relevancy score dropped to 0.89, which is below the initial PoC threshold of 0.90. This indicates that the model parameters tuned for short queries are less effective for longer, more complex ones.
+Out of 8 complex queries, 6 were correctly identified as relevant and 2 as not relevant.
+Evaluation of Qsense and Qradar
+Qsense Evaluation:
+
+Performance: Qsense demonstrated strong potential but showed a clear dependency on query length and keyword density.
+Relevancy Scoring (Flag 1): This feature, based on a score threshold, was less effective for complex queries. The verbose nature of these queries diluted the keyword concentration, leading to lower scores. Only 4 out of 8 complex queries were flagged, despite 6 being relevant. The current threshold of 0.90 appears too high for complex queries.
+Keyword Matching (Flag 2): This feature performed well, correctly identifying 5 queries by matching keywords from a predefined list.
+Confidence Level: The model assigned a "Green" confidence level to 6 queries and "Amber" to 2, with no "Red" flags. This generally aligns with the final relevancy output.
+Qradar Evaluation:
+
+Performance: Qradar classified all 8 complex queries as "Low Complexity."
+Effectiveness: This suggests that the current Qradar model is not sensitive enough to capture the nuanced and intricate patterns present in the more descriptive and longer request types. Its current configuration appears to be too simplistic for this use case.
+How Short Queries Differ from Complex Queries
+The primary distinction lies in their structure and content.
+
+Short queries are succinct and to the point. They are characterized by a high density of specific keywords, making them easier for models trained on keyword frequency and relevancy scores to interpret correctly.
+Complex queries are verbose and narrative-driven. They often provide extensive background context, which can lower the overall keyword density and introduce noise, challenging models that rely heavily on keyword-based scoring.
+Query Examples
+Short Query Examples (from PoC):
+
+"What filters do I apply to work out Number of events where the sum value of the child impacts labelled "Provision write back" does not equal the sum value of the child impacts labelled "Provision"
+"How is the 'Number of events where the sum value of the child impacts "Provision write back" does not equal the sum value of the child impacts labelled "Provision"' metric calculated"
+Complex Query Examples:
+
+ORRE 102 (Relevant, Amber Confidence): "I work with GPS Operations (Payments) and we track aging in-Progress internal EIMTs (RQ) in our weekly KRIs...However, HSBC has exited those markets...What is the communication and reporting requirements around control monitoring post-exit/sale results? I want to understand our responsibilities..."
+Analysis: This query is long and provides significant context before getting to the core question. Qsense correctly identified it as relevant but assigned an "Amber" confidence, likely due to the lower relevancy score caused by its length.
+ORRE 107 (Not Relevant, Amber Confidence): "The below events is applicable to all individual events...In the secondary and Tertiary causes, are we applicable to choose root cause or primary cause...In this case, the facility (which we have lent only) has had higher security collateral of account receivables and hence the provision is under thresholds...Is there an acceptable rationale to suggest that since thresholds are in-line...the event should be considered 'in-line'..."
+Analysis: This query is also highly detailed. Qsense correctly identified it as "Not Relevant" but flagged it with "Amber" confidence, indicating some uncertainty.
+Additional Insights and Recommendations
+Model Thresholds Need Adjustment: The relevancy score threshold is a key parameter that needs to be dynamic. A higher threshold should be maintained for short, concise queries, while a lower threshold is necessary for complex, verbose queries.
+Qradar Requires Enhancement: The "Low Complexity" classification for all queries indicates that Qradar, in its current state, does not add significant value for this type of analysis. Its pattern and trigger recognition capabilities need to be enhanced.
+Hybrid Approach: The success of Qsense's keyword matching (Flag 2) suggests that a hybrid approach could be effective. Combining keyword spotting with a more flexible, length-adjusted relevancy score could improve overall accuracy.
+Human-in-the-Loop: For queries that fall into an "Amber" confidence zone, a human review process ("human-in-the-loop") is recommended to ensure accurate classification.
