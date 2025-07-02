@@ -1,18 +1,117 @@
-Based on the review of the highlighted sections related to the 2024 and 2025 updates in the provided model documentation, here are some probing questions and findings:
-Section 3.2 / 4.3.1: Business Requirements / Model History (2024 Updates)
- * Finding: The documentation mentions the introduction of "Client View" for Wash Trading detection in Equity and Fixed Income for 2024. It also notes RCALA conducted threshold analysis and validation for this.
-   * Question: Regarding the Client View for Wash Trading, what specific challenges were encountered during the validation and threshold setting process, particularly in distinguishing legitimate high volume client activity from potential wash trading? How does the model ensure that the application of the same thresholds used for Trader View is appropriate for Client View, given potential differences in trading patterns?
- * Finding: Deployment to Tier 2 countries (including AUS, PHL, THA, IDN, KOR, MYS, TWN, VNM) is planned for 2024.
-   * Question: For the Tier 2 country deployment, what specific market structure differences or data availability challenges were identified, and how have the model parameters or thresholds been adapted for these jurisdictions? Have local regulatory nuances in these Tier 2 countries been fully incorporated into the model's logic and alert review procedures?
- * Finding: A new Group Model Policy (GMP) is mentioned, with consolidation expected by 2024. Changes required by this new policy will be implemented or tracked as backlog remediation.
-   * Question: What is the anticipated impact of the new GMP on the existing MAST model governance and documentation? Is there a risk assessment for potential conflicts between the new GMP requirements and the existing model structure or vendor limitations?
-Section 3.2 / 4.3.1: Business Requirements / Model History (2025 Updates)
- * Finding: Several new metrics are planned for 2025: Cross Product Layering and Spoofing (CPLS) for Equities, RFQ Front Running, and an enhanced Multi-Trader Front Running (MTFR) metric. Validation and threshold recommendations are associated activities.
-   * Question: For the new 2025 metrics (Equity CPLS, RFQ Front Running, enhanced MTFR), what is the planned approach for validation, particularly concerning the availability of sufficient historical data (especially for RFQ data) and identifying distinct abusive patterns compared to existing metrics?
-   * Question: The enhanced MTFR metric aims to capture instances where client orders are disadvantaged due to connected traders' activities. How will the model define and identify "connected traders," and what data sources will be used for this? What controls are in place to avoid false positives where trading activity appears connected but isn't collusive?
-   * Question: Given the introduction of multiple new, potentially complex metrics in 2025, what is the plan for user training and ensuring reviewer competency in analysing alerts from these new scenarios (Equity CPLS, RFQ FR, enhanced MTFR)?
- * Finding: The Model Risk Governance (MRG) team has agreed to review the model risk rating in 2025.
-   * Question: What are the key criteria or triggers that will inform the MRG review of the model risk rating in 2025? Will the introduction and performance of the new 2025 metrics be a primary factor in this reassessment?
-Sections 7.4, 8.2, 10.3, 12.1 (Methodology/Specification)
- * Finding: While these sections (Front Running Allocation, Ramping Identification, Aggressive Facilitation, Insider Trading Scoring) are listed for review, the provided text extracts focusing on 2024/2025 updates do not appear to contain specific modifications to these existing methodologies for those years. The updates seem focused on adding new metrics or views (Client View, new 2025 metrics).
-   * Question: Can it be confirmed that no specific changes to the core logic or scoring methodology for the existing metrics detailed in sections 7.4, 8.2, 10.3, and 12.1 are planned as part of the 2024 or 2025 updates, beyond those implicitly affected by broader changes like intraday data usage (introduced prior) or potential GMP impacts?
+Here’s how you can explain the key differences between “short” and “complex” Operational-Risk-Resilience (ORR) queries to your business stakeholders—and why you’d automate the former end-to-end but keep a human in the loop for the latter:
+
+
+---
+
+1. Query Anatomy
+
+Dimension	Short Queries	Complex Queries
+
+Form	• One-line, fact-based questions<br>• Use consistent “metric names” (“Number of events…”, “What filters…”)	• Multi-sentence e-mails or narratives<br>• Free-text storytelling: contexts, examples, justification needs
+Length	~5–15 words	~50–200+ words
+Structure	• Highly templated (“How do I…?”, “What calculation…?”)<br>• Little or no domain back-story	• Rich context: why, when, who, what happened<br>• References to controls, thresholds, external guides
+Cognitive Demand	Pull a single data-point or definition	Synthesize from multiple sources, apply judgment
+Data Needs	One table or metric lookup	May require cross-module correlation, policy review, judgement calls
+Risk of Mis-answer	Low — single known formula or lookup	High — nuance matters; wrong auto-answer could lead to policy breach or misclassification
+
+
+
+---
+
+2. Examples
+
+Short
+“What filters do I apply to work out Number of events where the sum value of the child impacts labelled ‘Provision write back’ does not equal the sum value of the child impacts labelled ‘Provision’?”
+→ Auto→AI can map “Provision write back” & “Provision” to those two columns in the live ORRA database, apply identical aggregation logic, and return the count.
+
+Complex
+
+> “I was re-checking Technical User Guides to see what specific guidance is in there. I have captured that two key sections from the Identify and Assess TUG below are contradictory. I feel like the two key points contradict each other as 3.5.7 states that an assessment of the Overall Control Effectiveness is required for medium risks, and 4.5.1 says it’s not required… Helios will not allow you to leave the Overall Control Effectiveness assessment field blank so this appears to be incorrect.”
+→ Requires:
+
+
+
+1. Document lookup (Identify & Assess TUG sections 3.5.7 vs. 4.5.1)
+
+
+2. Policy interpretation, legal/regulatory check
+
+
+3. Clarification (are they referring to two different versions? regional variance?)
+
+
+4. Stakeholder coordination (risk stewards, control owners)
+
+
+
+
+
+---
+
+3. AI-Driven Workflow
+
+1. Ingestion & Classification
+
+Token-length and sparse-score (or custom “story vs. metric” classifier) flag query as short/complex.
+
+
+
+2. Short → Fully Automated
+
+Route to the “Short-Query Engine” (pre-trained on ORR FAQs + metric lookups).
+
+No human in loop; SLA = seconds.
+
+
+
+3. Complex → Human-In-Loop
+
+Pre-populate draft answer via AI (pull policy excerpts, suggest reconcile steps).
+
+Escalate to a risk analyst or control-owner for review & sign-off.
+
+SLA = hours, but higher confidence on nuance.
+
+
+
+
+
+---
+
+4. Benefits & Controls
+
+Speed & Scale
+
+~70% of your incoming questions are short-form → handled instantly, around the clock.
+
+
+Quality & Compliance
+
+All “complex” answer drafts are reviewed by domain experts before sending.
+
+
+Continuous Learning
+
+Capture reviewer edits on complex cases to retrain the short-query classifier and expand the short-query engine’s knowledge base over time.
+
+
+
+
+---
+
+Next Steps
+
+Define your classification thresholds (e.g. token count > 40 OR “contains narrative markers” → complex).
+
+Build/connect:
+
+An AI FAQ module for the 50–100 most common short queries.
+
+A case-management queue for hand-off of complex queries.
+
+
+Pilot with a small group of risk stewards to calibrate SLAs and quality checks.
+
+
+This clear two-tiered approach lets you harness automation for routine lookups while ensuring human expertise guides any question that demands deeper judgment or has regulatory impact.
+
