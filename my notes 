@@ -1,117 +1,30 @@
-Here’s how you can explain the key differences between “short” and “complex” Operational-Risk-Resilience (ORR) queries to your business stakeholders—and why you’d automate the former end-to-end but keep a human in the loop for the latter:
+Here are some concise bullet points you can share with your stakeholders:
 
+What the Keyword/Entity List Is
 
----
+A curated set of domain-specific terms, phrases and entity names (e.g. “Outside Activity,” “ISA,” “ShareMatch”) that signal a query’s relevance to a particular policy area or request type.
 
-1. Query Anatomy
+Acts as a lookup/reference for our AI pipeline to spot key concepts and topics in incoming user queries.
 
-Dimension	Short Queries	Complex Queries
 
-Form	• One-line, fact-based questions<br>• Use consistent “metric names” (“Number of events…”, “What filters…”)	• Multi-sentence e-mails or narratives<br>• Free-text storytelling: contexts, examples, justification needs
-Length	~5–15 words	~50–200+ words
-Structure	• Highly templated (“How do I…?”, “What calculation…?”)<br>• Little or no domain back-story	• Rich context: why, when, who, what happened<br>• References to controls, thresholds, external guides
-Cognitive Demand	Pull a single data-point or definition	Synthesize from multiple sources, apply judgment
-Data Needs	One table or metric lookup	May require cross-module correlation, policy review, judgement calls
-Risk of Mis-answer	Low — single known formula or lookup	High — nuance matters; wrong auto-answer could lead to policy breach or misclassification
+Why It Matters
 
+Precision & Coverage: Ensures our similarity and fuzzy-match engines don’t miss critical policy terms (reducing false negatives), while filtering out off-topic noise (reducing false positives).
 
+Consistency: Guarantees that, over time, the same terms are treated the same way—crucial for auditability and regulatory compliance.
 
----
+Speed & Scalability: Allows automated tagging of simple queries without human intervention, freeing SMEs to focus on genuinely complex cases.
 
-2. Examples
 
-Short
-“What filters do I apply to work out Number of events where the sum value of the child impacts labelled ‘Provision write back’ does not equal the sum value of the child impacts labelled ‘Provision’?”
-→ Auto→AI can map “Provision write back” & “Provision” to those two columns in the live ORRA database, apply identical aggregation logic, and return the count.
+Why SME Review Is Essential
 
-Complex
+Domain Accuracy: Only subject-matter experts can confirm that we’ve included all current policies, local variations and recent terminology changes.
 
-> “I was re-checking Technical User Guides to see what specific guidance is in there. I have captured that two key sections from the Identify and Assess TUG below are contradictory. I feel like the two key points contradict each other as 3.5.7 states that an assessment of the Overall Control Effectiveness is required for medium risks, and 4.5.1 says it’s not required… Helios will not allow you to leave the Overall Control Effectiveness assessment field blank so this appears to be incorrect.”
-→ Requires:
+Nuance & Context: SMEs help distinguish between homonyms or overlapping terms (e.g. “IPO” in compliance vs. marketing), preventing misclassification.
 
+Ongoing Maintenance: Policies evolve—SME oversight ensures the list is regularly updated, so relevance tagging stays reliable as regulations and business practices change.
 
 
-1. Document lookup (Identify & Assess TUG sections 3.5.7 vs. 4.5.1)
 
-
-2. Policy interpretation, legal/regulatory check
-
-
-3. Clarification (are they referring to two different versions? regional variance?)
-
-
-4. Stakeholder coordination (risk stewards, control owners)
-
-
-
-
-
----
-
-3. AI-Driven Workflow
-
-1. Ingestion & Classification
-
-Token-length and sparse-score (or custom “story vs. metric” classifier) flag query as short/complex.
-
-
-
-2. Short → Fully Automated
-
-Route to the “Short-Query Engine” (pre-trained on ORR FAQs + metric lookups).
-
-No human in loop; SLA = seconds.
-
-
-
-3. Complex → Human-In-Loop
-
-Pre-populate draft answer via AI (pull policy excerpts, suggest reconcile steps).
-
-Escalate to a risk analyst or control-owner for review & sign-off.
-
-SLA = hours, but higher confidence on nuance.
-
-
-
-
-
----
-
-4. Benefits & Controls
-
-Speed & Scale
-
-~70% of your incoming questions are short-form → handled instantly, around the clock.
-
-
-Quality & Compliance
-
-All “complex” answer drafts are reviewed by domain experts before sending.
-
-
-Continuous Learning
-
-Capture reviewer edits on complex cases to retrain the short-query classifier and expand the short-query engine’s knowledge base over time.
-
-
-
-
----
-
-Next Steps
-
-Define your classification thresholds (e.g. token count > 40 OR “contains narrative markers” → complex).
-
-Build/connect:
-
-An AI FAQ module for the 50–100 most common short queries.
-
-A case-management queue for hand-off of complex queries.
-
-
-Pilot with a small group of risk stewards to calibrate SLAs and quality checks.
-
-
-This clear two-tiered approach lets you harness automation for routine lookups while ensuring human expertise guides any question that demands deeper judgment or has regulatory impact.
+These points will help stakeholders understand both the technical role of the keyword list in your Gen-AI relevancy workflow and the critical need for expert validation.
 
