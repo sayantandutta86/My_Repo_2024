@@ -1,30 +1,29 @@
-Here are some concise bullet points you can share with your stakeholders:
-
-What the Keyword/Entity List Is
-
-A curated set of domain-specific terms, phrases and entity names (e.g. “Outside Activity,” “ISA,” “ShareMatch”) that signal a query’s relevance to a particular policy area or request type.
-
-Acts as a lookup/reference for our AI pipeline to spot key concepts and topics in incoming user queries.
+Here’s a clearer and more professional version of the note that you can share with business stakeholders:
 
 
-Why It Matters
+---
 
-Precision & Coverage: Ensures our similarity and fuzzy-match engines don’t miss critical policy terms (reducing false negatives), while filtering out off-topic noise (reducing false positives).
+Background:
 
-Consistency: Guarantees that, over time, the same terms are treated the same way—crucial for auditability and regulatory compliance.
+AI will be leveraged to answer user queries using policy documents as contextual reference.
 
-Speed & Scalability: Allows automated tagging of simple queries without human intervention, freeing SMEs to focus on genuinely complex cases.
+To initiate this process, we need to establish a benchmark. This requires a set of real user queries along with SME-reviewed answers that include citations from relevant policy documents. This “golden set” will serve as the foundation to evaluate the accuracy and reliability of the AI-generated responses.
+
+Ask from Analytics:
+
+To move forward with solution design, we request stakeholders to support the creation of this golden set. Specifically:
+
+Provide 30+ sample queries (covering both short and complex types).
+
+Each query should have a corresponding SME-reviewed answer.
+
+Answers must include clear citations/references from policy documents.
 
 
-Why SME Review Is Essential
-
-Domain Accuracy: Only subject-matter experts can confirm that we’ve included all current policies, local variations and recent terminology changes.
-
-Nuance & Context: SMEs help distinguish between homonyms or overlapping terms (e.g. “IPO” in compliance vs. marketing), preventing misclassification.
-
-Ongoing Maintenance: Policies evolve—SME oversight ensures the list is regularly updated, so relevance tagging stays reliable as regulations and business practices change.
+This input is essential to ensure that AI responses can be benchmarked against a credible, trusted source before deployment.
 
 
+---
 
-These points will help stakeholders understand both the technical role of the keyword list in your Gen-AI relevancy workflow and the critical need for expert validation.
+Let me know if you'd like a version with bullet points or formatted for a slide.
 
