@@ -1,0 +1,44 @@
+Of course. Here is a comprehensive, to-the-point 10-minute pitch designed to logically and convincingly articulate the need for Project Sentinel as the necessary evolution of your current Query Pre-processing framework.
+The Pitch: From Query Pre-processing to Project Sentinel
+(Slide 1: Title Slide)
+ * Title: The Next Evolution of ADA: From Query Pre-processing to Project Sentinel
+ * Subtitle: Building a Trustworthy and Reliable AI for Compliance
+(Slide 2: Acknowledging Our Success & Identifying the Gap - ~1.5 minutes)
+"Good morning. I want to start by acknowledging the great work we've done with our Query Pre-processing framework, or QPP. The Qsense and Qradar components have been a valuable first step. They give us a 'Red-Amber-Green' signal on whether a user's query is relevant to our compliance knowledge base and simple enough for the AI to handle. This has successfully filtered out a lot of noise and ensured we're starting with the right questions.
+However, this approach has a fundamental and dangerous blind spot: it only assesses the question, not the answer.
+The single biggest risk we face in a compliance setting is an AI that hallucinates—giving a confident, plausible, but factually incorrect answer.[1, 2] Our current QPP framework is completely blind to this. It's like a quality check on the raw ingredients for a meal, but it never tastes the final dish. It can't tell us if the chef burned the food or used salt instead of sugar.
+A query can be perfectly relevant and simple—getting a "Green" light from QPP—but the AI can still fail catastrophically by retrieving incomplete information or simply inventing an answer.[3] This gives us a false sense of security. QPP tells us the question was good, but it offers zero assurance that the answer is safe, accurate, or grounded in our policies."
+(Slide 3: The Solution: Introducing Project Sentinel - ~1 minute)
+"This is why we need to evolve to Project Sentinel.
+Project Sentinel is not a replacement for QPP, but a crucial extension that operates after the initial answer is generated. It moves the quality check from just the front door to the entire assembly line, scrutinizing the process from the initial query all the way to the final generated answer.
+Its motivation is simple: to shift from predicting confidence to verifying it.
+The objectives are to:
+ * Measure the factual accuracy and completeness of every AI-generated answer.
+ * Diagnose the root cause of low-quality answers.
+ * Actively and automatically fix the problem through intelligent query enrichment. [4, 5, 6]"
+(Slide 4: How Sentinel Works Part 1: Confidence Assessment - ~2.5 minutes)
+"So, how does it work? Sentinel is an autonomous agent that, after our GenAI provides an answer, steps in to perform a rigorous, multi-dimensional evaluation. It doesn't need a 'golden answer' to do this; it uses only the user's query, the retrieved policy documents, and the AI's answer.
+It assesses confidence across four key dimensions:
+ * Retrieval Integrity: We ask, 'Did we find the right policy documents?' Here, we measure Contextual Precision—is the retrieved information relevant, or is it just noise that could confuse the AI? [7, 8] We also measure Contextual Completeness, a proxy for recall, which assesses if the retrieved documents appear sufficient to form a complete answer. [3, 7]
+ * Generation Groundedness: This is our primary defense against hallucination. We measure Faithfulness.[7, 9, 10] Sentinel programmatically breaks down the AI's answer into individual claims. For each claim, it cross-references it with the source policy text to verify it's 100% supported. If a claim isn't supported, it's flagged as a hallucination.
+ * Answer Utility: We measure Answer Relevancy.[7, 10] This ensures the final answer, even if faithful, directly addresses the user's original question and isn't off-topic.
+ * Query Quality: Finally, it runs a Query Ambiguity check, an evolution of our Qradar component, to see if the initial query itself was too vague or complex, which is often the root cause of poor performance. [2, 11]
+These scores are combined into a final High, Medium, or Low confidence rating. But Sentinel doesn't stop there."
+(Slide 5: How Sentinel Works Part 2: The Query Enrichment Engine - ~2.5 minutes)
+"This is where Sentinel becomes truly powerful. If confidence is low, it doesn't just flag it for a human. It diagnoses the problem based on the scores and autonomously tries to fix it using its Query Enrichment engine. [12, 13, 14]
+Here are a few examples of its corrective actions:
+ * Scenario 1: The context is incomplete. If the Contextual Completeness score is low, Sentinel hypothesizes the query was too narrow. It uses a technique called Multi-Query Expansion.[12, 15] It prompts an LLM to generate several related, rephrased versions of the original query to cast a wider net and retrieve all the necessary documents on the next attempt.
+ * Scenario 2: The context is noisy and irrelevant. If Contextual Precision is low, Sentinel assumes the query was too broad. It uses Step-Back Prompting.[16] It asks the AI to find the higher-level principle behind the query. For example, a specific query like, 'Can I approve this wire for John Doe?' becomes a more precise, principle-based query like, 'What are the general approval requirements for wire transfers for individual clients?' This retrieves much cleaner, more relevant context.
+ * Scenario 3: The initial query is complex and multi-part. If the Query Ambiguity score is high, Sentinel uses Decomposition.[15, 4] It breaks a question like, 'What are the reporting and record-keeping requirements for wires over $3,000?' into two simpler sub-queries that are answered sequentially.
+This iterative loop—Assess, Diagnose, Enrich, and Re-assess—is what makes Sentinel a self-correcting system that actively works to improve the quality of its own output before it ever reaches a human reviewer. [17, 5, 18]"
+(Slide 6: Practical Implementation: This is Industry Standard, Not Fiction - ~1.5 minutes)
+"Most importantly, this is not a theoretical research project. This is the new industry standard for building enterprise-grade, trustworthy AI, often called Agentic RAG or Self-Corrective RAG. [19, 20, 21, 22, 23] It's a direct response to the well-documented failure points of simpler RAG systems. [3, 24]
+We can build this today using established, open-source tools and frameworks. The agent's workflow can be implemented with LangGraph, a library from the creators of LangChain, designed specifically for building these kinds of stateful, cyclical agents. [25] The evaluation metrics for confidence scoring can be implemented using battle-tested libraries like Ragas and DeepEval. [26, 7, 10, 27, 28]
+This is a well-defined engineering path, not a research experiment. It's a practical solution to a very real business risk."
+(Slide 7: The Value Proposition & Call to Action - ~1 minute)
+"By funding Project Sentinel, we gain three critical advantages:
+ * Massively Reduced Compliance Risk: We get a dedicated, automated verification layer that actively hunts for and mitigates AI hallucinations, protecting the bank from the legal and reputational consequences of inaccurate advice. [29, 1, 30, 31, 32]
+ * Increased Efficiency and Trust: Our human advisors can finally trust the "High" confidence scores because they know the final answer has been verified. This allows them to focus their valuable time on the truly complex "Medium" and "Low" confidence queries that require their expertise.
+ * A Future-Proof Architecture: This agentic framework is a reusable pattern. The investment we make here will become the foundation for building trustworthy AI applications across the entire organization. [33, 34, 35, 36]
+To put it simply: our Query Pre-processing framework was about asking the right questions. Project Sentinel is about guaranteeing we get the right answers. It's the essential next step to move ADA from a promising pilot to a trusted, reliable, and enterprise-ready compliance tool.
+I'm ready to discuss the implementation plan and timeline in more detail. Thank you."
