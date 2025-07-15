@@ -1,73 +1,29 @@
-**MEMORANDUM OF MEETING**  
-
-**To:** All Meeting Attendees  
-**From:** [Your Name], Senior AI Architect  
-**Date:** 26 June 2025  
-**Subject:** MOM - Technical Sync on Qsense Deployment, CMLP Integration & Refactoring Status  
-
----
-
-### **Executive Summary**  
-This meeting addressed critical technical dependencies for Qsense production deployment, CMLP monitoring data ingestion, and the status of Qsense/Oradar code refactoring. Key outcomes include confirmation of GitHub-managed configurations, incremental CMLP data ingestion strategy, and a pending timeline for refactoring completion contingent on CI/CD pipeline readiness.  
-
----
-
-### **Key Discussion Points & Decisions**  
-
-#### **1. Qsense Keyword List Access (Post-Deployment)**  
-- **Solution:**  
-  The keyword list and all ancillary configurations reside in the **Orchestration Layer GitHub Repo**.  
-- **Production Protocol:**  
-  Only the **final committed version** of the repo will be deployed to production.  
-- **Action:**  
-  Analytics team to coordinate with RCDP for repository access and version-tracking procedures.  
-
-#### **2. CMLP Model Monitoring Data Ingestion**  
-- **Ingestion Strategy:**  
-  Data will flow incrementally to CMLP. Each update cycle appends **only new data**; historical data remains immutable even if source updates occur.  
-- **Rationale:**  
-  Ensures auditability, reduces storage overhead, and aligns with idempotent ETL design principles.  
-- **Next Step:**  
-  RCDP to share schema specifications and incremental load frequency with Analytics team by **30 June 2025**.  
-
-#### **3. Qsense & Oradar Code Refactoring Status**  
-- **Current State:**  
-  - Refactoring completed in RCDP’s local environment.  
-  - **Blockers:**  
-    - Con-AI IT team must finalize **CI/CD pipeline creation**.  
-    - Pending integration and testing of APIs post-pipeline setup.  
-- **Timeline Commitment:**  
-  Wright (RCDP) to provide a **tentative completion timeline** by **28 June 2025**, contingent on Con-AI IT’s delivery.  
-
----
-
-### **Critical Dependencies & Risks**  
-| **Item**               | **Owner**       | **Deadline**     | **Risk Mitigation**                  |  
-|-------------------------|-----------------|------------------|--------------------------------------|  
-| CI/CD Pipeline Setup    | Con-AI IT Team  | ASAP             | Daily stand-ups to monitor progress  |  
-| Refactoring Timeline    | Wright (RCDP)   | 28 June 2025     | Escalate delays to program leadership|  
-
----
-
-### **Action Items**  
-| **Owner**          | **Task**                                                      | **Due Date**   |  
-|--------------------|---------------------------------------------------------------|----------------|  
-| **RCDP Team**      | Grant Analytics team access to Orchestration Layer GitHub Repo | 27 June 2025   |  
-| **Wright (RCDP)**  | Share refactoring completion timeline (post-CI/CD readiness)  | 28 June 2025   |  
-| **Con-AI IT Team** | Confirm CI/CD pipeline delivery date                          | 27 June 2025   |  
-| **Analytics Team** | Review CMLP schema specs and validate incremental logic       | 3 July 2025    |  
-
----
-
-### **Next Steps**  
-1. RCDP to facilitate a joint session between Con-AI IT and Analytics for pipeline integration specs.  
-2. Weekly technical syncs instituted every **Wednesday, 10:00 AM IST** until refactoring deployment.  
-
----  
-**Approved by:**  
-[Your Name]  
-*Senior AI Architect*  
-[Contact Information]  
-
---- 
-**Note:** Flexibility in timelines is acknowledged pending Con-AI IT’s deliverables. Proactive escalation paths are established for blockers.
+Of course! Based on the goals you've listed in the Notepad file and the fields in the HSBC development plan form, here is some suggested text you can use. I have created a detailed entry for each of your two goals.
+You can adapt or copy and paste these as you see fit.
+Goal 1: HSBC AI Technical Ambassador Program
+ * Action Item:
+   Complete the HSBC AI Technical Ambassador program.
+ * Development Actions to be Taken:
+   Proactively enroll in the next available cohort of the AI Technical Ambassador program. Dedicate time to attend all scheduled training sessions, workshops, and webinars. Thoroughly complete all coursework, practical assignments, and project submissions on time. Actively participate in program discussions and collaborative activities to deepen understanding and network with peers. Successfully pass any final assessments or evaluations to achieve official certification.
+ * Measures of Success:
+   * Official certificate of completion for the HSBC AI Technical Ambassador program.
+   * Achieving a satisfactory or higher score on all program assessments and projects.
+   * The ability to articulate key AI concepts and their application within HSBC's context.
+   * Being recognized as a point of contact for foundational AI queries within the team.
+ * Support required:
+   Approval from my manager to enroll and participate in the program. Allocation of protected time during working hours to attend sessions and complete required coursework. Access to all necessary program materials and learning platforms. Opportunities to apply the learned AI concepts in upcoming projects.
+ * Purpose of Goal:
+   To develop specialized knowledge in Artificial Intelligence and Machine Learning, aligning with HSBC's strategic technology goals. This will enhance my technical skill set, enabling me to contribute more effectively to AI-driven projects and initiatives. By becoming an AI Technical Ambassador, I aim to support my team and the wider organization by sharing knowledge and promoting the adoption of AI technologies.
+Goal 2: Understanding of Agile Framework
+ * Action Item:
+   Gain a comprehensive understanding of the Agile framework, including the roles of Scrum Master, Product Owner, and Project Management.
+ * Development Actions to be Taken:
+   Enroll in and complete a foundational Agile and Scrum course (e.g., via internal L&D portals or a recognized external provider like Scrum.org). Read key texts such as the official Scrum Guide to understand the principles and theory. Shadow an existing Scrum Master and Product Owner to observe their roles in practice during key ceremonies (sprint planning, daily stand-up, retrospective). I will seek opportunities to take a more active role in my team's Agile processes.
+ * Measures of Success:
+   * Successfully obtaining a recognized Agile/Scrum certification (e.g., Professional Scrum Master I - PSM I) or completing an internal HSBC equivalent.
+   * Ability to clearly articulate the principles of the Agile manifesto, the Scrum framework, and the distinct responsibilities of the Scrum Master, Product Owner, and Development Team.
+   * Making more effective and informed contributions during sprint planning, reviews, and retrospectives.
+ * Support required:
+   Approval and potential budget for a relevant Agile/Scrum certification course and examination. Opportunities to shadow or be mentored by an experienced Scrum Master or Product Owner within the organization. Encouragement and support to take a more active role in my team's Agile processes. Access to recommended reading materials and online learning resources.
+ * Purpose of Goal:
+   To improve my understanding of the project delivery lifecycle and enhance collaboration with team members in an Agile environment. A deeper knowledge of these frameworks will allow me to contribute more effectively to team efficiency, reduce friction in development cycles, and improve project outcomes. This skill set is foundational for career growth within modern technology and project management roles at HSBC.
