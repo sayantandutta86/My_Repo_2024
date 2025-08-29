@@ -1,0 +1,617 @@
+Excellent 👍 Glad you found it useful.
+Now let’s enrich each section further with more concrete, project-specific points that you can directly use when drafting the document.
+This way, each ToC section won’t just be one sentence but will contain 2–4 concise bullets that give depth and clarity.
+
+
+---
+
+📑 ADA Project Documentation – Expanded Table of Contents with Concrete Points
+
+
+---
+
+1. Few Documentations Management Control
+
+Ensure documentation is version-controlled, aligned with HSBC’s governance standards.
+
+Evidence of approvals at PoC, Pilot, and Production stages.
+
+Secure storage with access only to authorized teams (AI/Compliance/SMEs).
+
+
+
+---
+
+2. Table of Contents
+
+Structured overview of all ADA project documentation.
+
+Helps trace from business requirements → model development → monitoring → governance.
+
+
+
+---
+
+3. Executive Summary
+
+ADA is a GenAI-based solution for resolving employee compliance queries.
+
+Business value: reduced SME response effort, improved turnaround time, enhanced digital containment.
+
+Rollout path: PoC → Pilot → Production, with governance checks at each stage.
+
+Key success: balancing AI automation with SME oversight for compliance-critical areas.
+
+
+
+---
+
+3.1. Introduction
+
+Background: ASK Compliance platform, ~40 key compliance areas.
+
+Problem: SME time consumed in repetitive responses.
+
+Opportunity: GenAI to provide suggested responses + confidence scores.
+
+
+
+---
+
+3.2. Business Requirements
+
+Faster turnaround for compliance queries.
+
+Confidence scoring for AI-suggested responses (QSense + QRadar).
+
+Governance-aligned AI deployment with AIRCo and MRM approvals.
+
+Continuous monitoring: adoption, accuracy, SME satisfaction.
+
+
+
+---
+
+3.3. Model Development and Testing
+
+PoC tested ADA with masked data & ~120 queries.
+
+Pilot: Expanded queries, SME-in-loop testing, system integration with ASK.
+
+Production: Full rollout with governance-approved monitoring.
+
+
+
+---
+
+4. Model Governance and Regulatory Compliance
+
+Governance approvals required: AIRCo, MRM inventory onboarding, GMRS standards.
+
+Clear roles: SMEs validate, Central AI supports, AIRCo oversees.
+
+Independent validation at Pilot and Production stages.
+
+
+
+---
+
+4.1. Business Requirements
+
+Model should filter out incomplete/unclear queries.
+
+Restricted queries flagged for SME review.
+
+Public/internal queries can get AI-suggested responses with confidence scoring.
+
+
+
+---
+
+4.2. Model Scope
+
+Scope limited to predefined compliance categories.
+
+No subjective or interpretative queries handled without SME.
+
+Initial deployment within ASK → may scale to global coverage later.
+
+
+
+---
+
+4.3. Model Output and Use
+
+AI generates a suggested response + confidence label (Red/Amber/Green).
+
+SME either accepts, modifies, or rejects the response.
+
+Final approved response stored for monitoring and reuse.
+
+
+
+---
+
+4.4. Model Network / Landscape
+
+ADA integrated into ASK Compliance workflow.
+
+Connected to knowledge base, SME dashboards, IAM logs, and monitoring systems.
+
+Central AI playbook governs interactions with wider HSBC AI ecosystem.
+
+
+
+---
+
+4.5. Model Acceptance Criteria
+
+Accuracy ≥ defined threshold (e.g., >80% match with SME-approved responses).
+
+Confidence scoring system validated.
+
+SME satisfaction score ≥ target level.
+
+No regulatory breaches in test queries.
+
+
+
+---
+
+4.6. Model Use Environment
+
+PoC: Sandbox (masked data).
+
+Pilot: ASK environment with selected advisors.
+
+Production: Full-scale deployment with reporting + monitoring dashboards.
+
+
+
+---
+
+5. Model Development Data
+
+Sources: Historical COO-approved responses, SME advisor inputs, compliance documentation.
+
+Dataset prepared into risk categories (Public/Internal/Restricted).
+
+Data refreshed continuously with new SME-approved cases.
+
+
+
+---
+
+5.1. Data Sources and Data Controls
+
+Data controlled under role-based access and masked during PoC.
+
+Securely shared across AI/Compliance teams with logging.
+
+
+
+---
+
+5.2. Regulatory Requirements on Data
+
+Compliance with DSS, GDPR, and HSBC internal data standards.
+
+Restricted queries excluded unless governance-approved.
+
+
+
+---
+
+5.3. Data Ethics
+
+No bias against employee groups or compliance areas.
+
+Transparency: confidence scoring + SME oversight ensures fairness.
+
+
+
+---
+
+5.4. Data Characteristics
+
+Queries: short, categorical, specific to compliance.
+
+Responses: structured, formal, regulatory tone.
+
+
+
+---
+
+5.5. Data Quality Assessment
+
+Dataset checked for completeness, duplication, alignment with SME-approved responses.
+
+
+
+---
+
+5.6. Data Preparation
+
+Pre-processed via QSense (relevance scoring) and QRadar (complexity scoring).
+
+Queries categorized before AI response generation.
+
+
+
+---
+
+5.7. Data Handling
+
+IAM logs for user access tracking.
+
+System logs for latency monitoring.
+
+All query/response pairs retained for audit trails.
+
+
+
+---
+
+6. Model Variables
+
+Query type, risk category.
+
+QSense (relevance), QRadar (complexity).
+
+Confidence score (Red/Amber/Green).
+
+Final SME action (accept/modify/reject).
+
+
+
+---
+
+6.1. Model Methodology
+
+Retrieval-augmented generation (RAG) with AI assistant.
+
+Human-in-the-loop for final response.
+
+Continuous feedback loop for model updates.
+
+
+
+---
+
+6.2. Possible Methodologies
+
+Fine-tuned LLM vs. Prompt-engineered LLM vs. Hybrid RAG.
+
+Evaluated based on response accuracy + governance fit.
+
+
+
+---
+
+6.3. Assessment of Methodologies
+
+Benchmarked accuracy, latency, and SME satisfaction across approaches.
+
+
+
+---
+
+6.4. Preferred Methodology
+
+Chosen: RAG + QSense/QRadar + SME oversight.
+
+
+
+---
+
+7. Model Specification and Development
+
+Pipeline: Query → Preprocessing → AI Response → Confidence Score → SME → Final Response → Monitoring.
+
+
+
+---
+
+7.1. Model Variable and Characteristic Selection
+
+Selected for interpretability and compliance traceability.
+
+
+
+---
+
+7.2. Segmentation
+
+Handling based on query sensitivity (Public, Internal, Restricted).
+
+
+
+---
+
+7.3. Candidate Models
+
+Different GenAI LLMs tested in PoC with comparative metrics.
+
+
+
+---
+
+7.4. Model Assumptions and Limitations
+
+AI provides suggestions, not final decisions.
+
+Restricted/legal queries must always route through SMEs.
+
+
+
+---
+
+7.5. Model Development Process
+
+Iterative development across PoC → Pilot → Production.
+
+
+
+---
+
+7.6. User Engagement
+
+SME advisors involved in feedback surveys (L1 & L2 feedback).
+
+Advisors rate accuracy, completeness, and hallucination risk.
+
+
+
+---
+
+7.7. Summary: Use of Human Judgement
+
+SMEs mandatory in loop for all compliance-critical responses.
+
+
+
+---
+
+8. Model Testing, Test Results and Test Conclusions
+
+PoC: 120 queries, 3 rounds (reduced to 2 initially).
+
+Pilot: Limited advisors, broader coverage.
+
+Metrics: Accuracy, SME satisfaction, adoption rates.
+
+
+
+---
+
+8.1. Tuning
+
+Adjustments made to improve accuracy thresholds.
+
+
+
+---
+
+8.2. Quantitative Tests
+
+Cosine similarity, ROUGE, BERT, system latency.
+
+
+
+---
+
+8.3. Qualitative Tests
+
+SME feedback on Completeness, Accuracy, Writing Style.
+
+
+
+---
+
+8.4. Model Calibration and Adjustment
+
+Red/Amber/Green thresholds tuned based on SME acceptance rates.
+
+
+
+---
+
+8.5. User Engagement
+
+Advisors provided surveys → fed into monitoring reports.
+
+
+
+---
+
+9. Final Model
+
+Approved for production after AIRCo and MRM sign-off.
+
+
+
+---
+
+9.1. Conceptual Soundness
+
+Balanced design: AI + SME + confidence scoring.
+
+
+
+---
+
+9.2. Model Architecture
+
+End-to-end system architecture showing query → AI → SME → monitoring.
+
+
+
+---
+
+9.3. Modelling Relationships
+
+ADA ↔ SME ↔ ASK platform ↔ Governance forums.
+
+
+
+---
+
+9.4. Model Analytics
+
+KPIs: Adoption rate, SME time saved, accuracy vs baseline.
+
+
+
+---
+
+9.5. Model Confirmation
+
+Independent validation to confirm performance.
+
+
+
+---
+
+9.6. Model Implementation
+
+Rollout strategy, advisor training, monitoring integration.
+
+
+
+---
+
+10. Model Risks and Model Monitoring
+
+Identified risks: hallucination, bias, over-reliance, compliance gaps.
+
+
+
+---
+
+10.1. Model Risks
+
+Incorrect answers, reliance without SME, poor adoption.
+
+
+
+---
+
+10.2. Compensating Controls
+
+Confidence scoring, SME oversight, query suppression.
+
+
+
+---
+
+10.3. On-going Model Monitoring Arrangements
+
+L1/L2 SME feedback, LLM-as-judge evals, logs, dashboards.
+
+
+
+---
+
+10.4. Monitoring Process and Governance
+
+Central AI and MRM review, periodic AIRCo updates.
+
+
+
+---
+
+10.5. Example Monitoring Output
+
+Sample dashboard: adoption %, accuracy trend, SME satisfaction score.
+
+
+
+---
+
+11. Model Governance and Regulatory Compliance
+
+AIRCo + MRM approvals at Pilot and Production.
+
+GMRS standards applied throughout.
+
+
+
+---
+
+11.1. Development Process
+
+Sandbox → Controlled pilot → Production with governance checkpoints.
+
+
+
+---
+
+11.2. Model Regulatory Compliance
+
+Evidence against GMRS 8.1 and GMRS Pillar 1 requirements.
+
+
+
+---
+
+11.3. Independent Validation
+
+Central AI team + MRM independent evaluation.
+
+
+
+---
+
+11.4. Model Approval
+
+Final AIRCo sign-off required for production deployment.
+
+
+
+---
+
+12. Appendix
+
+Supporting content, diagrams, approvals.
+
+
+
+---
+
+12.1. Documentary Evidence
+
+PoC test results, SME surveys, logs.
+
+
+
+---
+
+12.2. Glossary
+
+Key ADA terms (QSense, QRadar, RAG, L1 feedback).
+
+
+
+---
+
+12.3. Model Regulatory Compliance: GMRS 8.1 Modelling Standards
+
+Evidence showing ADA meets HSBC modelling standards.
+
+
+
+---
+
+12.4. Model Regulatory Compliance: GMRS Pillar 1
+
+Evidence of regulatory capital compliance.
+
+
+
+---
+
+⚡This version is richer, with actionable bullets under every section.
+You can pick & choose depth depending on whether it’s for management-level briefing or full technical documentation.
+
+👉 Do you want me to also summarize this into a single-page “manager view” (only the most critical sections like Business Requirements, Scope, Risks, Governance, Monitoring)?
+
