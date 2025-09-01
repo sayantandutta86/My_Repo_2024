@@ -1,0 +1,221 @@
+"""
+QA Compliance Analysis Script
+Author: Sayantan's AI Assistant (ChatGPT)
+
+This script processes an Excel dataset of queries, QA status, QA decisions,
+and generates a detailed multi-sheet Excel report with compliance checks,
+feedback distribution, request-type bias, risk scores, and embedded charts.
+
+It also creates a "Summary Dashboard" sheet with high-level KPIs for business stakeholders.
+"""
+
+import pandas as pd
+import numpy as np
+import os
+
+# ===============================
+# 1. Load Data
+# ===============================
+file_path = "query_report.xlsx"   # <-- change this to your Excel file path
+sheet_name = "Query Report"       # <-- change if sheet name is different
+
+df = pd.read_excel(file_path, sheet_name=sheet_name)
+
+# ===============================
+# 2. Preprocessing
+# ===============================
+# Convert Advice Closed Date into datetime
+df['Advice_Closed_Date'] = pd.to_datetime(df['Advice_Closed_Date'], errors='coerce')
+
+# Extract calendar year and quarter (used for compliance checks)
+df['Year'] = df['Advice_Closed_Date'].dt.year
+df['Quarter'] = df['Advice_Closed_Date'].dt.quarter
+
+# Define favourable/unfavourable QA outcomes
+favourable = ["Good", "Best Practice"]
+unfavourable = ["Developing - Administration", "Developing - Advice"]
+
+# Create a simplified "Feedback" column
+df['Feedback'] = np.where(df['Qa_Decision'].isin(favourable), "Favourable",
+                   np.where(df['Qa_Decision'].isin(unfavourable), "Unfavourable", "Other"))
+
+# ===============================
+# 3. Compliance Check (Per Advisor Per Quarter)
+# ===============================
+# Count number of queries closed and QA done
+compliance = (
+    df.groupby(['Assigned_To_Name', 'Year', 'Quarter'])
+    .agg(
+        queries_closed=('Request_Reference', 'count'),
+        qa_done=('Qa_Status', lambda x: (x == "QA Done").sum())
+    )
+    .reset_index()
+)
+
+# Function to calculate how many QA are required as per mandate
+def qa_required(n):
+    if n == 1: return 1
+    elif n >= 2: return 2
+    else: return 0
+
+compliance['qa_required'] = compliance['queries_closed'].apply(qa_required)
+compliance['Breach'] = compliance['qa_done'] < compliance['qa_required']
+compliance['Compliance_Status'] = np.where(compliance['Breach'], "Breached", "Maintained")
+
+# ===============================
+# 4. QA Required vs Done (Global Numbers)
+# ===============================
+total_qa_required = compliance['qa_required'].sum()
+total_qa_done = (df['Qa_Status'] == "QA Done").sum()
+
+qa_summary = pd.DataFrame({
+    "Total_QA_Required": [total_qa_required],
+    "Total_QA_Done": [total_qa_done],
+    "Coverage_%": [round(total_qa_done / total_qa_required * 100, 2) if total_qa_required > 0 else 0]
+})
+
+# ===============================
+# 5. Feedback Distribution
+# ===============================
+qa_done_df = df[df['Qa_Status'] == "QA Done"].copy()
+feedback_distribution = qa_done_df['Feedback'].value_counts(normalize=True) * 100
+feedback_df = feedback_distribution.reset_index()
+feedback_df.columns = ["Feedback", "Percentage"]
+
+# ===============================
+# 6. Post-Breach Performance
+# ===============================
+# Identify first breach quarter for each advisor
+breach_advisors = compliance[compliance['Breach']].groupby('Assigned_To_Name')['Quarter'].min().reset_index()
+breach_advisors.rename(columns={'Quarter': 'First_Breach_Quarter'}, inplace=True)
+
+# Merge feedback data
+qa_done_df = qa_done_df.merge(df[['Request_Reference','Assigned_To_Name','Year','Quarter']], on='Request_Reference', how='left')
+
+# Advisors who had Favourable feedback before breach but Unfavourable after
+post_breach = []
+for advisor in breach_advisors['Assigned_To_Name']:
+    first_breach_q = breach_advisors.loc[breach_advisors['Assigned_To_Name']==advisor, 'First_Breach_Quarter'].values[0]
+    advisor_feedback = qa_done_df[qa_done_df['Assigned_To_Name']==advisor]
+    before = advisor_feedback[advisor_feedback['Quarter'] <= first_breach_q]['Feedback'].unique()
+    after = advisor_feedback[advisor_feedback['Quarter'] > first_breach_q]['Feedback'].unique()
+    if "Favourable" in before and "Unfavourable" in after:
+        post_breach.append(advisor)
+
+post_breach_df = pd.DataFrame(post_breach, columns=["Advisors with Post-Breach Deterioration"])
+
+# ===============================
+# 7. Request Type Bias
+# ===============================
+request_type_bias = []
+for advisor, group in qa_done_df.groupby('Assigned_To_Name'):
+    if group['Request_Type'].nunique() > 1:
+        dominant_type = group['Request_Type'].mode().values[0]
+        if (group['Request_Type'] == dominant_type).mean() > 0.8:  # >80% QA focus
+            if "Unfavourable" in group['Feedback'].values:
+                request_type_bias.append(advisor)
+
+request_type_bias_df = pd.DataFrame(request_type_bias, columns=["Advisors with Request Type Bias"])
+
+# ===============================
+# 8. Risk Scores (Composite Index)
+# ===============================
+# Risk Score = 0.4 * Breach Ratio + 0.4 * Unfavourable Ratio + 0.2 * Bias Flag
+risk_scores = []
+for advisor in df['Assigned_To_Name'].dropna().unique():
+    total_breaches = compliance[(compliance['Assigned_To_Name']==advisor) & (compliance['Breach'])].shape[0]
+    total_periods = compliance[compliance['Assigned_To_Name']==advisor].shape[0]
+    breach_ratio = total_breaches / total_periods if total_periods > 0 else 0
+
+    advisor_feedback = qa_done_df[qa_done_df['Assigned_To_Name']==advisor]
+    unfavourable_ratio = (advisor_feedback['Feedback']=="Unfavourable").mean() if not advisor_feedback.empty else 0
+
+    bias_flag = 1 if advisor in request_type_bias else 0
+
+    risk = 0.4*breach_ratio + 0.4*unfavourable_ratio + 0.2*bias_flag
+    risk_scores.append([advisor, breach_ratio, unfavourable_ratio, bias_flag, risk])
+
+risk_scores_df = pd.DataFrame(risk_scores, columns=["Advisor","Breach_Ratio","Unfavourable_Ratio","Bias_Flag","Risk_Score"])
+risk_scores_df.sort_values("Risk_Score", ascending=False, inplace=True)
+
+# ===============================
+# 9. Export to Excel with Charts + Dashboard
+# ===============================
+output_file = "qa_compliance_report.xlsx"
+with pd.ExcelWriter(output_file, engine="xlsxwriter") as writer:
+    workbook = writer.book
+
+    # Write each analysis to its own sheet
+    compliance.to_excel(writer, sheet_name="Compliance Summary", index=False)
+    qa_summary.to_excel(writer, sheet_name="QA Coverage", index=False)
+    feedback_df.to_excel(writer, sheet_name="Feedback Distribution", index=False)
+    post_breach_df.to_excel(writer, sheet_name="Post-Breach Analysis", index=False)
+    request_type_bias_df.to_excel(writer, sheet_name="Request Type Bias", index=False)
+    risk_scores_df.to_excel(writer, sheet_name="Risk Scores", index=False)
+
+    # ================
+    # Create Dashboard
+    # ================
+    dashboard = workbook.add_worksheet("Summary Dashboard")
+
+    # High-level KPIs
+    dashboard.write("A1", "Summary Dashboard")
+    dashboard.write("A3", "Total QA Required")
+    dashboard.write("B3", total_qa_required)
+    dashboard.write("A4", "Total QA Done")
+    dashboard.write("B4", total_qa_done)
+    dashboard.write("A5", "QA Coverage %")
+    dashboard.write("B5", round(total_qa_done/total_qa_required*100,2) if total_qa_required>0 else 0)
+    dashboard.write("A7", "Total Breach Instances")
+    dashboard.write("B7", compliance['Breach'].sum())
+    dashboard.write("A8", "Breach Rate %")
+    dashboard.write("B8", round(compliance['Breach'].mean()*100,2))
+    dashboard.write("A10", "Favourable Feedback %")
+    dashboard.write("B10", round(feedback_df.loc[feedback_df['Feedback']=="Favourable","Percentage"].sum(),2))
+    dashboard.write("A11", "Unfavourable Feedback %")
+    dashboard.write("B11", round(feedback_df.loc[feedback_df['Feedback']=="Unfavourable","Percentage"].sum(),2))
+
+    # Top 5 Risky Advisors
+    top5 = risk_scores_df.head(5)
+    dashboard.write("A13", "Top 5 Risky Advisors")
+    for i, row in enumerate(top5.itertuples(), start=14):
+        dashboard.write(i, 0, row.Advisor)
+        dashboard.write(i, 1, round(row.Risk_Score,2))
+
+    # ===============================
+    # Charts for Dashboard
+    # ===============================
+    # Feedback Pie
+    chart1 = workbook.add_chart({'type': 'pie'})
+    chart1.add_series({
+        'name': 'Feedback Distribution',
+        'categories': ['Feedback Distribution', 1, 0, len(feedback_df), 0],
+        'values': ['Feedback Distribution', 1, 1, len(feedback_df), 1]
+    })
+    chart1.set_title({'name': 'Feedback Distribution'})
+    dashboard.insert_chart('D3', chart1)
+
+    # Compliance Status Column
+    breach_counts = compliance['Compliance_Status'].value_counts().reset_index()
+    breach_counts.columns = ["Status","Count"]
+    breach_counts.to_excel(writer, sheet_name="Dashboard_Helper", index=False)
+    chart2 = workbook.add_chart({'type': 'column'})
+    chart2.add_series({
+        'name': 'Compliance Status',
+        'categories': ['Dashboard_Helper', 1, 0, len(breach_counts), 0],
+        'values': ['Dashboard_Helper', 1, 1, len(breach_counts), 1]
+    })
+    chart2.set_title({'name': 'Compliance Status'})
+    dashboard.insert_chart('D20', chart2)
+
+    # Risk Score Bar
+    chart3 = workbook.add_chart({'type': 'bar'})
+    chart3.add_series({
+        'name': 'Advisor Risk Scores',
+        'categories': ['Risk Scores', 1, 0, len(risk_scores_df), 0],
+        'values': ['Risk Scores', 1, 4, len(risk_scores_df), 4]
+    })
+    chart3.set_title({'name': 'Advisor Risk Scores'})
+    dashboard.insert_chart('J3', chart3)
+
+print(f"✅ Report generated with embedded charts and Summary Dashboard: {os.path.abspath(output_file)}")
