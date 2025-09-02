@@ -1,0 +1,248 @@
+import pandas as pd
+import numpy as np
+import os
+
+# -------------------------------------------------------------------
+# CONFIGURATION
+# -------------------------------------------------------------------
+INPUT_FILE = "QA_Data.xlsx"              # TODO: replace with your input file path
+OUTPUT_FILE = "QA_Compliance_Report.xlsx"
+
+# -------------------------------------------------------------------
+# LOAD DATA
+# -------------------------------------------------------------------
+df = pd.read_excel(INPUT_FILE)
+
+# -------------------------------------------------------------------
+# HELPER FUNCTIONS
+# -------------------------------------------------------------------
+def get_quarter(date):
+    """Convert a datetime into Year-Quarter string like 2024-Q1"""
+    return f"{date.year}-Q{((date.month - 1) // 3) + 1}"
+
+def quarter_index(q):
+    """Convert Year-Quarter (e.g. '2024-Q1') into an integer index for comparison"""
+    year, qtr = q.split("-Q")
+    return int(year) * 4 + int(qtr)
+
+# -------------------------------------------------------------------
+# DATA PREPARATION
+# -------------------------------------------------------------------
+df["Advice_Closed_Date"] = pd.to_datetime(df["Advice_Closed_Date"], errors="coerce")
+df["Qa_Date"] = pd.to_datetime(df["Qa_Date"], errors="coerce")
+df = df.dropna(subset=["Advice_Closed_Date"])
+
+df["Closed_Quarter"] = df["Advice_Closed_Date"].apply(get_quarter)
+df["Qa_Quarter"] = df["Qa_Date"].apply(lambda x: get_quarter(x) if pd.notnull(x) else None)
+
+# QA mapping
+favourable = ["Good", "Best Practice"]
+unfavourable = ["Developing - Administration", "Developing - Advice"]
+
+def map_decision(val):
+    if val in favourable:
+        return "Favourable"
+    elif val in unfavourable:
+        return "Unfavourable"
+    else:
+        return "Others"
+
+df["Qa_Category"] = df["Qa_Decision"].apply(map_decision)
+
+# -------------------------------------------------------------------
+# 1. Compliance per advisor per quarter
+# -------------------------------------------------------------------
+compliance_results = []
+for (advisor, quarter), group in df.groupby(["Assigned_To_Name", "Closed_Quarter"]):
+    closed_queries = group["Request_Reference"].nunique()
+    qa_done = group[group["Qa_Status"] == "QA Done"]["Request_Reference"].nunique()
+    required_qa = 1 if closed_queries == 1 else (2 if closed_queries >= 2 else 0)
+    breach = qa_done < required_qa
+    compliance_results.append([advisor, quarter, closed_queries, qa_done, required_qa, breach])
+
+compliance_df = pd.DataFrame(
+    compliance_results,
+    columns=["Advisor", "Quarter", "Closed_Queries", "QA_Done", "QA_Required", "Breach"]
+)
+
+# Totals
+total_required = compliance_df["QA_Required"].sum()
+total_done = compliance_df["QA_Done"].sum()
+
+# Feedback distribution
+feedback_dist = df["Qa_Category"].value_counts(normalize=True) * 100
+
+# -------------------------------------------------------------------
+# 2. Advisors with deterioration
+# -------------------------------------------------------------------
+advisors_with_deterioration = []
+for advisor, group in df.groupby("Assigned_To_Name"):
+    group = group.sort_values("Closed_Quarter")
+    advisor_breaches = compliance_df[
+        (compliance_df["Advisor"] == advisor) & (compliance_df["Breach"])
+    ]
+    if not advisor_breaches.empty:
+        first_breach_quarter = advisor_breaches.iloc[0]["Quarter"]
+        breach_quarter_index = quarter_index(first_breach_quarter)
+        group["quarter_index"] = group["Closed_Quarter"].apply(quarter_index)
+        post_period = group[group["quarter_index"] <= breach_quarter_index + 2]
+        if ("Favourable" in post_period["Qa_Category"].values
+            and "Unfavourable" in post_period["Qa_Category"].values):
+            advisors_with_deterioration.append(advisor)
+
+# -------------------------------------------------------------------
+# 3. Request type bias
+# -------------------------------------------------------------------
+bias_records = []
+for (advisor, quarter), group in df.groupby(["Assigned_To_Name", "Closed_Quarter"]):
+    closed_types = group["Request_Type"].unique()
+    qa_types = group[group["Qa_Status"] == "QA Done"]["Request_Type"].unique()
+    if len(closed_types) > 1 and len(qa_types) == 1:
+        bad_feedback = (group[group["Qa_Category"] == "Unfavourable"].shape[0] > 0)
+        bias_records.append([advisor, quarter, list(closed_types), list(qa_types), bad_feedback])
+
+bias_df = pd.DataFrame(
+    bias_records,
+    columns=["Advisor", "Quarter", "Closed_Types", "QA_Types", "Bad_Feedback"]
+)
+
+# -------------------------------------------------------------------
+# 4. QA delay analysis
+# -------------------------------------------------------------------
+def quarter_diff(row):
+    if pd.isnull(row["Qa_Quarter"]):
+        return np.nan
+    return quarter_index(row["Qa_Quarter"]) - quarter_index(row["Closed_Quarter"])
+
+df["Quarter_Delay"] = df.apply(quarter_diff, axis=1)
+
+delay_dist = df["Quarter_Delay"].value_counts(normalize=True, dropna=True) * 100
+feedback_by_delay = (
+    df.groupby("Quarter_Delay")["Qa_Category"]
+    .value_counts(normalize=True)
+    .unstack()
+    .fillna(0) * 100
+)
+
+# -------------------------------------------------------------------
+# EXECUTIVE SUMMARY DATA
+# -------------------------------------------------------------------
+# Breach counts
+breach_counts = compliance_df["Breach"].value_counts()
+breach_summary = pd.DataFrame({
+    "Status": ["Non-Breach", "Breach"],
+    "Count": [breach_counts.get(False, 0), breach_counts.get(True, 0)]
+})
+
+# Compliance trend by quarter
+trend = (
+    compliance_df.groupby("Quarter")["Breach"]
+    .apply(lambda x: 100 * (1 - x.mean()))
+    .reset_index(name="Compliance %")
+)
+
+# Top 10 advisors by breaches
+top_advisors = (
+    compliance_df.groupby("Advisor")["Breach"]
+    .sum()
+    .sort_values(ascending=False)
+    .head(10)
+    .reset_index(name="Breach_Count")
+)
+
+# -------------------------------------------------------------------
+# SAVE TO EXCEL WITH CHARTS
+# -------------------------------------------------------------------
+with pd.ExcelWriter(OUTPUT_FILE, engine="xlsxwriter") as writer:
+    workbook = writer.book
+
+    # Compliance
+    compliance_df.to_excel(writer, sheet_name="Compliance", index=False)
+
+    # QA Totals
+    pd.DataFrame(
+        {"Total Required": [total_required], "Total Done": [total_done]}
+    ).to_excel(writer, sheet_name="QA_Totals", index=False)
+
+    # Feedback distribution
+    feedback_dist.to_frame("Percentage").to_excel(writer, sheet_name="Feedback_Distribution")
+
+    # Feedback deterioration
+    pd.DataFrame({"Advisors": advisors_with_deterioration}).to_excel(
+        writer, sheet_name="Feedback_Deterioration", index=False
+    )
+
+    # Bias
+    if not bias_df.empty:
+        bias_df.to_excel(writer, sheet_name="Request_Type_Bias", index=False)
+
+    # Delay distribution
+    delay_dist.to_frame("Percentage").to_excel(writer, sheet_name="QA_Delay_Distribution")
+
+    # Feedback vs Delay
+    feedback_by_delay.to_excel(writer, sheet_name="Feedback_vs_Delay")
+
+    # Executive Summary
+    summary_sheet = "Executive_Summary"
+    breach_summary.to_excel(writer, sheet_name=summary_sheet, index=False, startrow=1)
+    trend.to_excel(writer, sheet_name=summary_sheet, index=False, startrow=10)
+    top_advisors.to_excel(writer, sheet_name=summary_sheet, index=False, startrow=20)
+    feedback_dist.to_frame("Percentage").to_excel(writer, sheet_name=summary_sheet, startrow=35)
+    delay_dist.to_frame("Percentage").to_excel(writer, sheet_name=summary_sheet, startrow=45)
+
+    ws = writer.sheets[summary_sheet]
+
+    # Titles
+    ws.write(0, 0, "Breach vs Non-Breach")
+    ws.write(9, 0, "Compliance Trend by Quarter")
+    ws.write(19, 0, "Top 10 Advisors by Breaches")
+    ws.write(34, 0, "Feedback Distribution")
+    ws.write(44, 0, "QA Delay Distribution")
+
+    # Pie chart - breaches
+    chart1 = workbook.add_chart({"type": "pie"})
+    chart1.add_series({
+        "categories": f"='{summary_sheet}'!$A$2:$A$3",
+        "values": f"='{summary_sheet}'!$B$2:$B$3",
+    })
+    chart1.set_title({"name": "Breach vs Non-Breach"})
+    ws.insert_chart("D2", chart1)
+
+    # Line chart - trend
+    chart2 = workbook.add_chart({"type": "line"})
+    chart2.add_series({
+        "categories": f"='{summary_sheet}'!$A$11:$A${10+len(trend)}",
+        "values": f"='{summary_sheet}'!$B$11:$B${10+len(trend)}",
+        "name": "Compliance %",
+    })
+    chart2.set_title({"name": "Compliance % Over Time"})
+    ws.insert_chart("D12", chart2)
+
+    # Bar chart - top advisors
+    chart3 = workbook.add_chart({"type": "column"})
+    chart3.add_series({
+        "categories": f"='{summary_sheet}'!$A$21:$A${20+len(top_advisors)}",
+        "values": f"='{summary_sheet}'!$B$21:$B${20+len(top_advisors)}",
+    })
+    chart3.set_title({"name": "Top Advisors by Breaches"})
+    ws.insert_chart("D22", chart3)
+
+    # Pie chart - feedback distribution
+    chart4 = workbook.add_chart({"type": "pie"})
+    chart4.add_series({
+        "categories": f"='{summary_sheet}'!$A$36:$A${35+len(feedback_dist)}",
+        "values": f"='{summary_sheet}'!$B$36:$B${35+len(feedback_dist)}",
+    })
+    chart4.set_title({"name": "Feedback Distribution"})
+    ws.insert_chart("D36", chart4)
+
+    # Bar chart - delay distribution
+    chart5 = workbook.add_chart({"type": "column"})
+    chart5.add_series({
+        "categories": f"='{summary_sheet}'!$A$46:$A${45+len(delay_dist)}",
+        "values": f"='{summary_sheet}'!$B$46:$B${45+len(delay_dist)}",
+    })
+    chart5.set_title({"name": "QA Delay Distribution"})
+    ws.insert_chart("D46", chart5)
+
+print(f"✅ QA Compliance Report generated with FULL Executive Summary: {os.path.abspath(OUTPUT_FILE)}")
