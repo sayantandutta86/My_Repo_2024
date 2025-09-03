@@ -1,188 +1,322 @@
-import pandas as pd 
-import numpy as np 
-import matplotlib.pyplot as plt 
-from scipy.stats import binom 
-from statsmodels.stats.proportion 
-import proportion_confint 
-import os
+"""
+QA Compliance and Advice Quality Analysis (2024)
 
-============================
+This script:
+1. Loads and preprocesses advisor query data
+2. Calculates QA compliance vs. breaches
+3. Classifies QA feedback into good/bad
+4. Computes query-level and advisor-level quality metrics
+5. Projects undetected risks using statistical confidence intervals
+6. Generates a multi-sheet Excel report with summary, breakdowns, and charts
 
-Utility Functions
+Author: [Your Name]
+"""
 
-============================
+# =========================
+# Import Required Libraries
+# =========================
 
-def load_data(file_path: str, sheet_name: str = "Sheet1") -> pd.DataFrame: df = pd.read_excel(file_path, sheet_name=sheet_name) return df
+import pandas as pd
+import numpy as np
+from statsmodels.stats.proportion import proportion_confint
 
-def preprocess(df: pd.DataFrame) -> pd.DataFrame: df = df.copy() df["Advice_Closed_Date"] = pd.to_datetime(df["Advice_Closed_Date"], errors="coerce") df["Qa_Date"] = pd.to_datetime(df["Qa_Date"], errors="coerce") df = df[df["Advice_Closed_Date"].dt.year == 2024] df["Qa_Decision"] = df["Qa_Decision"].fillna("").str.strip().str.title() return df
 
-def assign_quarter(df: pd.DataFrame) -> pd.DataFrame: df = df.copy() df["Quarter"] = df["Advice_Closed_Date"].dt.to_period("Q") return df
+# =========================
+# Data Loading & Preprocessing
+# =========================
 
-============================
+def load_data(file_path: str, sheet_name: str = "Sheet1") -> pd.DataFrame:
+    """
+    Load the input Excel file into a pandas DataFrame.
+    """
+    return pd.read_excel(file_path, sheet_name=sheet_name)
 
-Compliance Calculations
 
-============================
+def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Preprocess the dataset:
+    - Convert dates to datetime
+    - Keep only queries closed in 2024
+    - Normalize QA decision text
+    """
+    df = df.copy()
 
-def calculate_required_qas(df: pd.DataFrame) -> pd.DataFrame: grouped = df.groupby(["Assigned_To_Name", "Quarter"]).size().reset_index(name="Queries_Closed") grouped["Required_QA"] = grouped["Queries_Closed"].apply(lambda x: 1 if x == 1 else 2) return grouped
+    df["Advice_Closed_Date"] = pd.to_datetime(df["Advice_Closed_Date"], errors="coerce")
+    df["Qa_Date"] = pd.to_datetime(df["Qa_Date"], errors="coerce")
 
-def calculate_done_qas(df: pd.DataFrame) -> pd.DataFrame: qa_done = df[df["Qa_Status"] == "QA Done"] done = qa_done.groupby(["Assigned_To_Name", "Quarter"]).size().reset_index(name="QA_Done") return done
+    # Filter for 2024 closed queries only
+    df = df[df["Advice_Closed_Date"].dt.year == 2024]
 
-def compliance_summary(required: pd.DataFrame, done: pd.DataFrame) -> pd.DataFrame: merged = pd.merge(required, done, on=["Assigned_To_Name", "Quarter"], how="left") merged["QA_Done"] = merged["QA_Done"].fillna(0) merged["Breached"] = merged["QA_Done"] < merged["Required_QA"] merged["Shortage"] = merged["Required_QA"] - merged["QA_Done"] merged["Shortage"] = merged["Shortage"].clip(lower=0) return merged
+    # Clean QA decision strings
+    df["Qa_Decision"] = df["Qa_Decision"].fillna("").str.strip().str.title()
 
-============================
+    return df
 
-Feedback Analysis
 
-============================
+def assign_quarter(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add calendar quarter column (Q1–Q4).
+    """
+    df = df.copy()
+    df["Quarter"] = df["Advice_Closed_Date"].dt.to_period("Q")
+    return df
 
-def classify_feedback(df: pd.DataFrame) -> pd.DataFrame: df = df.copy() favourable = ["Good", "Best Practice"] unfavourable = ["Developing - Administration", "Developing - Advice"] df["Feedback"] = np.where(df["Qa_Decision"].isin(favourable), "Good", np.where(df["Qa_Decision"].isin(unfavourable), "Bad", "Unknown")) return df
 
-def gini_coefficient(array): array = np.array(array, dtype=np.float64) if np.amin(array) < 0: array -= np.amin(array) array += 1e-9 array = np.sort(array) n = array.shape[0] cumulative = np.cumsum(array) gini = (n + 1 - 2 * np.sum(cumulative) / cumulative[-1]) / n return gini
+# =========================
+# Compliance Calculations
+# =========================
 
-def lorenz_curve_data(array): array = np.array(array, dtype=np.float64) array = np.sort(array) cum = np.cumsum(array) lorenz = np.insert(cum / cum[-1], 0, 0) x = np.linspace(0, 1, len(lorenz)) return x, lorenz
+def calculate_required_qas(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compliance mandate:
+    - If advisor closed 1 query → 1 QA required
+    - If advisor closed ≥2 queries → 2 QAs required
+    """
+    grouped = df.groupby(["Assigned_To_Name", "Quarter"]).size().reset_index(name="Queries_Closed")
+    grouped["Required_QA"] = grouped["Queries_Closed"].apply(lambda x: 1 if x == 1 else 2)
+    return grouped
 
-def bad_feedback_metrics(df: pd.DataFrame) -> dict: qa_done = df[df["Qa_Status"] == "QA Done"] bad_df = qa_done[qa_done["Feedback"] == "Bad"]
 
-metrics = {}
-metrics["good_pct"] = round((len(qa_done[qa_done["Feedback"] == "Good"]) / len(qa_done)) * 100, 2) if len(qa_done) > 0 else 0
-metrics["bad_pct"] = round((len(bad_df) / len(qa_done)) * 100, 2) if len(qa_done) > 0 else 0
+def calculate_done_qas(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Count how many QAs were actually done per advisor per quarter.
+    """
+    qa_done = df[df["Qa_Status"] == "QA Done"]
+    return qa_done.groupby(["Assigned_To_Name", "Quarter"]).size().reset_index(name="QA_Done")
 
-advisor_bad_counts = bad_df.groupby("Assigned_To_Name").size().reset_index(name="Bad_Count")
-metrics["advisors_1_bad"] = (advisor_bad_counts["Bad_Count"] == 1).sum()
-metrics["advisors_2_bad"] = (advisor_bad_counts["Bad_Count"] == 2).sum()
-metrics["advisors_gt2_bad"] = (advisor_bad_counts["Bad_Count"] > 2).sum()
 
-metrics["bad_by_advisor"] = bad_df.groupby("Assigned_To_Name").size().reset_index(name="Bad_Feedbacks")
-metrics["bad_by_quarter"] = bad_df.groupby("Quarter").size().reset_index(name="Bad_Feedbacks")
-metrics["bad_by_type"] = bad_df.groupby("Request_Type").size().reset_index(name="Bad_Feedbacks")
+def compliance_summary(required: pd.DataFrame, done: pd.DataFrame) -> pd.DataFrame:
+    """
+    Merge required vs done and calculate breaches.
+    """
+    merged = pd.merge(required, done, on=["Assigned_To_Name", "Quarter"], how="left")
+    merged["QA_Done"] = merged["QA_Done"].fillna(0)
+    merged["Breached"] = merged["QA_Done"] < merged["Required_QA"]
+    merged["Shortage"] = (merged["Required_QA"] - merged["QA_Done"]).clip(lower=0)
+    return merged
 
-advisor_bad_counts_only = advisor_bad_counts["Bad_Count"] if not advisor_bad_counts.empty else pd.Series([0])
-metrics["distribution"] = {
-    "mean": advisor_bad_counts_only.mean(),
-    "median": advisor_bad_counts_only.median(),
-    "std": advisor_bad_counts_only.std(),
-    "percentiles": advisor_bad_counts_only.quantile([0.25, 0.5, 0.75]).to_dict()
-}
 
-metrics["gini"] = gini_coefficient(advisor_bad_counts_only) if not advisor_bad_counts_only.empty else 0
-metrics["lorenz_data"] = lorenz_curve_data(advisor_bad_counts_only)
+# =========================
+# Feedback Analysis
+# =========================
 
-return metrics
+def classify_feedback(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Classify feedback outcomes:
+    - Good = ["Good", "Best Practice"]
+    - Bad = ["Developing - Administration", "Developing - Advice"]
+    - Unknown = not QA'ed
+    """
+    df = df.copy()
+    favourable = ["Good", "Best Practice"]
+    unfavourable = ["Developing - Administration", "Developing - Advice"]
 
-============================
+    df["Feedback"] = np.where(df["Qa_Decision"].isin(favourable), "Good",
+                        np.where(df["Qa_Decision"].isin(unfavourable), "Bad", "Unknown"))
+    return df
 
-Projection of Undetected Bad Feedbacks
 
-============================
+# =========================
+# Helper Functions: Statistics
+# =========================
 
-def wilson_interval(successes: int, n: int, alpha: float = 0.05): if n == 0: return (0.0, 0.0) return proportion_confint(successes, n, alpha=alpha, method="wilson")
+def wilson_interval(successes: int, n: int, alpha: float = 0.05):
+    """
+    Wilson confidence interval for a binomial proportion.
+    """
+    if n == 0:
+        return (0.0, 0.0)
+    return proportion_confint(successes, n, alpha=alpha, method="wilson")
 
-def project_bad_feedbacks(df: pd.DataFrame) -> dict: qa_done = df[df["Qa_Status"] == "QA Done"] total_qas = len(qa_done) bad_qas = len(qa_done[qa_done["Feedback"] == "Bad"]) total_queries = len(df) bad_rate = bad_qas / total_qas if total_qas > 0 else 0 projected_bads = bad_rate * total_queries ci_low, ci_high = wilson_interval(bad_qas, total_qas) return { "bad_rate": bad_rate, "projected_bads": projected_bads, "ci_low": ci_low * total_queries, "ci_high": ci_high * total_queries }
 
-def project_bad_feedbacks_advisor(df: pd.DataFrame) -> pd.DataFrame: qa_done = df[df["Qa_Status"] == "QA Done"] advisor_stats = qa_done.groupby("Assigned_To_Name").agg( total_qas=("Request_Reference", "count"), bad_qas=("Feedback", lambda x: (x == "Bad").sum()), total_queries=("Request_Reference", "size") ).reset_index()
+# =========================
+# Metrics: Feedback Quality
+# =========================
 
-projections = []
-for _, row in advisor_stats.iterrows():
-    total_qas = row["total_qas"]
-    bad_qas = row["bad_qas"]
-    total_queries = len(df[df["Assigned_To_Name"] == row["Assigned_To_Name"]])
-    bad_rate = (bad_qas + 1) / (total_qas + 2)  # Laplace smoothing
+def bad_feedback_metrics(df: pd.DataFrame) -> dict:
+    """
+    Generate detailed feedback quality metrics:
+    - Percent good/bad
+    - Advisors with 1, 2, >2 bads
+    - Breakdown by advisor, quarter, type
+    - Distribution stats
+    """
+    qa_done = df[df["Qa_Status"] == "QA Done"]
+    bad_df = qa_done[qa_done["Feedback"] == "Bad"]
+
+    metrics = {}
+    metrics["good_pct"] = round((qa_done["Feedback"].eq("Good").sum() / len(qa_done)) * 100, 2) if len(qa_done) > 0 else 0
+    metrics["bad_pct"] = round((bad_df.shape[0] / len(qa_done)) * 100, 2) if len(qa_done) > 0 else 0
+
+    advisor_bad_counts = bad_df.groupby("Assigned_To_Name").size().reset_index(name="Bad_Count")
+    metrics["advisors_1_bad"] = (advisor_bad_counts["Bad_Count"] == 1).sum()
+    metrics["advisors_2_bad"] = (advisor_bad_counts["Bad_Count"] == 2).sum()
+    metrics["advisors_gt2_bad"] = (advisor_bad_counts["Bad_Count"] > 2).sum()
+
+    metrics["bad_by_advisor"] = bad_df.groupby("Assigned_To_Name").size().reset_index(name="Bad_Feedbacks")
+    metrics["bad_by_quarter"] = bad_df.groupby("Quarter").size().reset_index(name="Bad_Feedbacks")
+    metrics["bad_by_type"] = bad_df.groupby("Request_Type").size().reset_index(name="Bad_Feedbacks")
+
+    return metrics
+
+
+# =========================
+# Metrics: Population-Level Projections
+# =========================
+
+def project_bad_feedbacks(df: pd.DataFrame) -> dict:
+    """
+    Project undetected bad advice at population level (all queries).
+    """
+    qa_done = df[df["Qa_Status"] == "QA Done"]
+    total_qas = len(qa_done)
+    bad_qas = qa_done["Feedback"].eq("Bad").sum()
+    total_queries = len(df)
+
+    bad_rate = bad_qas / total_qas if total_qas > 0 else 0
     projected_bads = bad_rate * total_queries
-    ci_low, ci_high = wilson_interval(bad_qas, total_qas) if total_qas > 0 else (0, 0)
-    projections.append({
-        "Assigned_To_Name": row["Assigned_To_Name"],
-        "Observed_Bad_Rate": bad_qas / total_qas if total_qas > 0 else 0,
-        "Smoothed_Bad_Rate": bad_rate,
-        "Projected_Bads": projected_bads,
-        "CI_Low": ci_low * total_queries,
-        "CI_High": ci_high * total_queries
-    })
-return pd.DataFrame(projections)
+    ci_low, ci_high = wilson_interval(bad_qas, total_qas)
 
-============================
+    return {
+        "bad_rate": bad_rate,
+        "projected_bads": projected_bads,
+        "ci_low": ci_low * total_queries,
+        "ci_high": ci_high * total_queries
+    }
 
-Reporting Functions
 
-============================
+# =========================
+# Metrics: Advisor-Level Coverage & Risk
+# =========================
 
-def generate_excel_report(df: pd.DataFrame, compliance: pd.DataFrame, feedback: dict, projections: dict, advisor_proj: pd.DataFrame, output_file: str): with pd.ExcelWriter(output_file, engine="xlsxwriter") as writer: summary = pd.DataFrame({ "Metric": ["Total Queries", "Total QAs Required", "Total QAs Done", "% QAs Done", "% Breached Instances", "% Good Feedback", "% Bad Feedback", "Projected Bad Feedbacks", "95% CI Low", "95% CI High", "Gini Coefficient"], "Value": [ len(df), compliance["Required_QA"].sum(), compliance["QA_Done"].sum(), round(compliance["QA_Done"].sum() / compliance["Required_QA"].sum() * 100, 2), round(compliance["Breached"].mean() * 100, 2), feedback["good_pct"], feedback["bad_pct"], round(projections["projected_bads"], 2), round(projections["ci_low"], 2), round(projections["ci_high"], 2), round(feedback["gini"], 3) ] }) summary.to_excel(writer, sheet_name="Summary", index=False)
+def advisor_level_metrics(df: pd.DataFrame) -> dict:
+    """
+    Advisor-level metrics:
+    - Total advisors (closed ≥1 query in 2024)
+    - Advisors QA'ed
+    - % QA'ed advisors
+    - Advisors with ≥1 bad feedback
+    - % of QA'ed advisors with bad feedback
+    - Projected bad advisors among not-QA'ed (Wilson CI)
+    """
+    metrics = {}
 
-compliance.to_excel(writer, sheet_name="Quarterly_Compliance", index=False)
+    total_advisors = df["Assigned_To_Name"].nunique()
+    advisors_qaed = df[df["Qa_Status"] == "QA Done"]["Assigned_To_Name"].nunique()
+    advisors_with_bad = df[(df["Qa_Status"] == "QA Done") & (df["Feedback"] == "Bad")]["Assigned_To_Name"].nunique()
 
-    advisor_details = compliance.groupby("Assigned_To_Name").agg(
-        Queries_Closed=("Queries_Closed", "sum"),
-        QA_Required=("Required_QA", "sum"),
-        QA_Done=("QA_Done", "sum"),
-        Breaches=("Breached", "sum"),
-        Shortages=("Shortage", "sum")
-    ).reset_index()
-    advisor_details.to_excel(writer, sheet_name="Advisor_Details", index=False)
+    metrics["total_advisors"] = total_advisors
+    metrics["qaed_advisors"] = advisors_qaed
+    metrics["pct_qaed_advisors"] = round((advisors_qaed / total_advisors) * 100, 2) if total_advisors > 0 else 0
+    metrics["advisors_with_bad"] = advisors_with_bad
+    metrics["pct_advisors_with_bad"] = round((advisors_with_bad / advisors_qaed) * 100, 2) if advisors_qaed > 0 else 0
 
-    pd.DataFrame.from_dict(feedback["distribution"], orient="index", columns=["Value"]).to_excel(writer, sheet_name="Bad_Feedback_Metrics")
-    feedback["bad_by_advisor"].to_excel(writer, sheet_name="Bad_By_Advisor", index=False)
-    feedback["bad_by_quarter"].to_excel(writer, sheet_name="Bad_By_Quarter", index=False)
-    feedback["bad_by_type"].to_excel(writer, sheet_name="Bad_By_Type", index=False)
+    # Projection for non-QA'ed advisors
+    n_total = total_advisors
+    n_qa = advisors_qaed
+    n_bad = advisors_with_bad
+    n_nonqa = n_total - n_qa
 
-    advisor_proj.to_excel(writer, sheet_name="Advisor_Projections", index=False)
+    if n_qa > 0:
+        p_low, p_high = wilson_interval(n_bad, n_qa)
+        p_hat = n_bad / n_qa
+        metrics["projected_bad_advisors"] = round(p_hat * n_nonqa, 2)
+        metrics["ci_low_bad_advisors"] = round(p_low * n_nonqa, 2)
+        metrics["ci_high_bad_advisors"] = round(p_high * n_nonqa, 2)
+    else:
+        metrics["projected_bad_advisors"] = 0
+        metrics["ci_low_bad_advisors"] = 0
+        metrics["ci_high_bad_advisors"] = 0
 
-    workbook = writer.book
+    return metrics
 
-    worksheet = writer.sheets["Advisor_Details"]
-    chart = workbook.add_chart({"type": "column"})
-    chart.add_series({
-        "categories": ["Advisor_Details", 1, 0, len(advisor_details), 0],
-        "values":     ["Advisor_Details", 1, 3, len(advisor_details), 3],
-        "name": "Breaches"
-    })
-    worksheet.insert_chart("H2", chart)
 
-    worksheet = writer.sheets["Summary"]
-    chart2 = workbook.add_chart({"type": "pie"})
-    chart2.add_series({
-        "categories": ["Summary", 5, 0, 6, 0],
-        "values": ["Summary", 5, 1, 6, 1],
-        "name": "Feedback Split"
-    })
-    worksheet.insert_chart("E2", chart2)
+# =========================
+# Report Generation
+# =========================
 
-    lorenz_x, lorenz_y = feedback["lorenz_data"]
-    lorenz_df = pd.DataFrame({"Population Share": lorenz_x, "Bad Feedback Share": lorenz_y})
-    lorenz_df.to_excel(writer, sheet_name="Lorenz_Data", index=False)
+def generate_excel_report(df: pd.DataFrame, compliance: pd.DataFrame,
+                          feedback: dict, projections: dict,
+                          advisor_metrics: dict, output_file: str):
+    """
+    Generate Excel report with:
+    - Summary sheet (query + advisor metrics)
+    - Quarterly compliance
+    - Advisor details
+    - Bad feedback breakdowns
+    """
+    with pd.ExcelWriter(output_file, engine="xlsxwriter") as writer:
+        # =========================
+        # Summary sheet
+        # =========================
+        summary_data = [
+            # Query-level metrics
+            ("Total Queries", len(df)),
+            ("Total QAs Required", compliance["Required_QA"].sum()),
+            ("Total QAs Done", compliance["QA_Done"].sum()),
+            ("% QAs Done", round(compliance["QA_Done"].sum() / compliance["Required_QA"].sum() * 100, 2)),
+            ("% Breached Instances", round(compliance["Breached"].mean() * 100, 2)),
+            ("% Good Feedback", feedback["good_pct"]),
+            ("% Bad Feedback", feedback["bad_pct"]),
+            ("Projected Bad Feedbacks", round(projections["projected_bads"], 2)),
+            ("95% CI Low (Queries)", round(projections["ci_low"], 2)),
+            ("95% CI High (Queries)", round(projections["ci_high"], 2)),
 
-    worksheet = writer.sheets["Lorenz_Data"]
-    chart3 = workbook.add_chart({"type": "line"})
-    chart3.add_series({
-        "categories": ["Lorenz_Data", 1, 0, len(lorenz_df), 0],
-        "values": ["Lorenz_Data", 1, 1, len(lorenz_df), 1],
-        "name": "Lorenz Curve"
-    })
-    worksheet.insert_chart("D2", chart3)
+            # Advisor-level metrics
+            ("Total Advisors", advisor_metrics["total_advisors"]),
+            ("Advisors QA'ed", advisor_metrics["qaed_advisors"]),
+            ("% QA'ed Advisors", advisor_metrics["pct_qaed_advisors"]),
+            ("Advisors with ≥1 Bad Feedback", advisor_metrics["advisors_with_bad"]),
+            ("% Advisors with Bad Feedback", advisor_metrics["pct_advisors_with_bad"]),
+            ("Projected Bad Advisors (non-QA'ed)", advisor_metrics["projected_bad_advisors"]),
+            ("95% CI Low (Advisors)", advisor_metrics["ci_low_bad_advisors"]),
+            ("95% CI High (Advisors)", advisor_metrics["ci_high_bad_advisors"])
+        ]
+        summary = pd.DataFrame(summary_data, columns=["Metric", "Value"])
+        summary.to_excel(writer, sheet_name="Summary", index=False)
 
-print(f"Report saved to {output_file}")
+        # =========================
+        # Other sheets
+        # =========================
+        compliance.to_excel(writer, sheet_name="Quarterly_Compliance", index=False)
+        advisor_details = compliance.groupby("Assigned_To_Name").agg(
+            Queries_Closed=("Queries_Closed", "sum"),
+            QA_Required=("Required_QA", "sum"),
+            QA_Done=("QA_Done", "sum"),
+            Breaches=("Breached", "sum"),
+            Shortages=("Shortage", "sum")
+        ).reset_index()
+        advisor_details.to_excel(writer, sheet_name="Advisor_Details", index=False)
+        feedback["bad_by_advisor"].to_excel(writer, sheet_name="Bad_By_Advisor", index=False)
+        feedback["bad_by_quarter"].to_excel(writer, sheet_name="Bad_By_Quarter", index=False)
+        feedback["bad_by_type"].to_excel(writer, sheet_name="Bad_By_Type", index=False)
 
-============================
+    print(f"Report saved to {output_file}")
 
-Main Execution
 
-============================
+# =========================
+# Main Execution
+# =========================
 
-def main(): input_file = "input.xlsx" output_file = "qa_compliance_report_2024.xlsx"
+def main():
+    input_file = "input.xlsx"   # Replace with your Excel file
+    output_file = "qa_compliance_report_2024.xlsx"
 
-df = load_data(input_file)
-df = preprocess(df)
-df = assign_quarter(df)
-df = classify_feedback(df)
+    df = load_data(input_file)
+    df = preprocess(df)
+    df = assign_quarter(df)
+    df = classify_feedback(df)
 
-required = calculate_required_qas(df)
-done = calculate_done_qas(df)
-compliance = compliance_summary(required, done)
+    required = calculate_required_qas(df)
+    done = calculate_done_qas(df)
+    compliance = compliance_summary(required, done)
 
-feedback = bad_feedback_metrics(df)
-projections = project_bad_feedbacks(df)
-advisor_proj = project_bad_feedbacks_advisor(df)
+    feedback = bad_feedback_metrics(df)
+    projections = project_bad_feedbacks(df)
+    advisor_metrics = advisor_level_metrics(df)
 
-generate_excel_report(df, compliance, feedback, projections, advisor_proj, output_file)
+    generate_excel_report(df, compliance, feedback, projections, advisor_metrics, output_file)
 
-if name == "main": main()
 
+if __name__ == "__main__":
+    main()
