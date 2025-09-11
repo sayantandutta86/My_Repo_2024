@@ -1,29 +1,103 @@
-Of course! Based on the goals you've listed in the Notepad file and the fields in the HSBC development plan form, here is some suggested text you can use. I have created a detailed entry for each of your two goals.
-You can adapt or copy and paste these as you see fit.
-Goal 1: HSBC AI Technical Ambassador Program
- * Action Item:
-   Complete the HSBC AI Technical Ambassador program.
- * Development Actions to be Taken:
-   Proactively enroll in the next available cohort of the AI Technical Ambassador program. Dedicate time to attend all scheduled training sessions, workshops, and webinars. Thoroughly complete all coursework, practical assignments, and project submissions on time. Actively participate in program discussions and collaborative activities to deepen understanding and network with peers. Successfully pass any final assessments or evaluations to achieve official certification.
- * Measures of Success:
-   * Official certificate of completion for the HSBC AI Technical Ambassador program.
-   * Achieving a satisfactory or higher score on all program assessments and projects.
-   * The ability to articulate key AI concepts and their application within HSBC's context.
-   * Being recognized as a point of contact for foundational AI queries within the team.
- * Support required:
-   Approval from my manager to enroll and participate in the program. Allocation of protected time during working hours to attend sessions and complete required coursework. Access to all necessary program materials and learning platforms. Opportunities to apply the learned AI concepts in upcoming projects.
- * Purpose of Goal:
-   To develop specialized knowledge in Artificial Intelligence and Machine Learning, aligning with HSBC's strategic technology goals. This will enhance my technical skill set, enabling me to contribute more effectively to AI-driven projects and initiatives. By becoming an AI Technical Ambassador, I aim to support my team and the wider organization by sharing knowledge and promoting the adoption of AI technologies.
-Goal 2: Understanding of Agile Framework
- * Action Item:
-   Gain a comprehensive understanding of the Agile framework, including the roles of Scrum Master, Product Owner, and Project Management.
- * Development Actions to be Taken:
-   Enroll in and complete a foundational Agile and Scrum course (e.g., via internal L&D portals or a recognized external provider like Scrum.org). Read key texts such as the official Scrum Guide to understand the principles and theory. Shadow an existing Scrum Master and Product Owner to observe their roles in practice during key ceremonies (sprint planning, daily stand-up, retrospective). I will seek opportunities to take a more active role in my team's Agile processes.
- * Measures of Success:
-   * Successfully obtaining a recognized Agile/Scrum certification (e.g., Professional Scrum Master I - PSM I) or completing an internal HSBC equivalent.
-   * Ability to clearly articulate the principles of the Agile manifesto, the Scrum framework, and the distinct responsibilities of the Scrum Master, Product Owner, and Development Team.
-   * Making more effective and informed contributions during sprint planning, reviews, and retrospectives.
- * Support required:
-   Approval and potential budget for a relevant Agile/Scrum certification course and examination. Opportunities to shadow or be mentored by an experienced Scrum Master or Product Owner within the organization. Encouragement and support to take a more active role in my team's Agile processes. Access to recommended reading materials and online learning resources.
- * Purpose of Goal:
-   To improve my understanding of the project delivery lifecycle and enhance collaboration with team members in an Agile environment. A deeper knowledge of these frameworks will allow me to contribute more effectively to team efficiency, reduce friction in development cycles, and improve project outcomes. This skill set is foundational for career growth within modern technology and project management roles at HSBC.
+Excellent observation 👍 — I see exactly what you mean. In the pilot flow, both semantic and hybrid retrieval pre-select top 100 chunks independently before intersecting. This raises a design concern: certain chunks with high BM25 scores but lower semantic scores might never survive to the overlap stage, even if they are relevant, and vice versa.
+
+We can integrate this point into the Observations & Clarifying Questions section, framing it as a request for clarification rather than outright criticism.
+
+Here’s the revised email draft with your new point added:
+
+
+---
+
+Subject: Clarification on Pilot Implementation vs. POC Design of Context Retrieval Mechanism
+
+Dear [Recipient/Team],
+
+I hope this message finds you well. I am reaching out regarding the pilot implementation of the context retrieval mechanism for our AI-driven Q&A system. Our analytics team designed the initial POC solution, and I wanted to outline its rationale, share our understanding of the pilot implementation, and seek clarifications to ensure we are fully aligned.
+
+
+---
+
+1. POC Solution Design (Analytics Team)
+
+The POC was intentionally designed with flexibility and explainability in mind. Key features included:
+
+Semantic Score Cutoff (0.75): Provided a clear threshold for semantic relevance, ensuring precision in retrieval.
+
+Sparse Retrieval (BM25, Top 75th Percentile): Introduced complementary retrieval strength for queries not well captured by embeddings.
+
+Reciprocal Rank Fusion (RRF): Allowed a weighted combination of semantic and sparse scores, with configurable weights for adaptive tuning.
+
+Configurable Thresholds: Both BM25 percentile cutoff and semantic cutoff were configurable, allowing iterative fine-tuning across use cases.
+
+Explainability Factor: The retrieval process could be traced and explained to stakeholders, enabling transparency and predictable outcomes.
+
+BM25 Score Requirement: A separate BM25 score was explicitly required to support Qsense functionality.
+
+
+This design allowed us to balance precision, recall, and explainability, while maintaining flexibility for future extensions.
+
+
+---
+
+2. Pilot Implementation (Our Understanding)
+
+From our review, the pilot implementation appears to function as follows:
+
+Semantic Search: Queries first pass through semantic retrieval, with top 100 chunks above 0.75 retained.
+
+Hybrid Search + RRF Ranking: A hybrid RRF ranking is performed, with the final top 5 chunks drawn from items common across both semantic (>0.75) and hybrid-RRF top 100 sets.
+
+ADA Response: These top 5 chunks form the input to ADA response generation.
+
+
+This implementation seems to emphasize hybrid ranking and semantic overlap, while reducing reliance on percentile thresholds and configurable weighting.
+
+
+---
+
+3. Observations & Clarifying Questions
+
+While we understand the rationale behind the pilot design, we would like to clarify a few points to better assess alignment:
+
+1. Flexibility in Thresholds: In the current pilot, thresholds (semantic cutoff, BM25 percentile cutoff, RRF weights) appear more rigid. Could you confirm if these can be configured or tuned in the current implementation?
+
+
+2. Explainability: The pilot design seems less transparent compared to the POC approach. How do we intend to trace and explain retrieval decisions to stakeholders, especially in regulated environments?
+
+
+3. Consistency of Outcomes: With reliance on overlap filtering from two top-100 lists, is there a risk of inconsistent chunk selection for similar queries?
+
+
+4. Top-100 Pre-Selection:
+
+Since both semantic and hybrid searches pre-filter top 100 chunks before overlap, could this lead to edge cases where relevant chunks are excluded? For instance, a chunk with a high BM25 score may appear in the hybrid set but be excluded from the semantic top 100 due to a lower semantic score, thereby never making it to the final overlap.
+
+Similarly, a chunk strong in semantic similarity but outside the hybrid top 100 could also be excluded.
+
+Could this pre-selection step inadvertently reduce coverage or introduce instability in retrieval?
+
+
+
+5. BM25 Score Availability: Since Qsense requires BM25 scores separately, how is this being addressed in the pilot implementation?
+
+
+
+
+---
+
+We are sharing these points as observations and clarifications, not as criticisms. Our intent is to ensure both teams remain fully aligned and that the solution maintains the required flexibility, transparency, and functionality for downstream use.
+
+For ease of reference, I have attached a diagram summarizing both the POC design and pilot implementation side by side.
+
+Looking forward to your inputs and clarifications.
+
+Best regards,
+Sayantan Dutta
+Senior Analytics Professional
+
+
+---
+
+👉 I suggest definitely attaching the diagram — because this “top 100 pre-selection” concern is easier to communicate visually, and it will strengthen your argument without sounding confrontational.
+
+Would you like me to also prepare a one-line summary for each observation (almost like “bullet takeaways”) so the IT team can quickly skim before diving into the detailed email? That might help ensure they don’t miss critical points.
+
