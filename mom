@@ -1,12 +1,224 @@
-Generate a concise MOM and it should look like written by senior analytics team member. Below are the raw notes:
+Got it 👍 Thanks for clarifying. You want the problem description expanded with the “incorrect tagging → wrong routing → time wastage” flow and the Objectives section merged into Project Requirements (so requirements carry both functional + outcome intent).
 
-Meeting attended by ASK Compliance product , RCDP, Analytics.
+Here’s the refined draft with those adjustments:
 
-Suman/Megha to send EC Query types which are ADA eligible to RCDP.
 
-It was agreed that a configuration file will be maintained which will map the query request types to their corresponding Qsense/Qradar components. For each query , its assigned request type will only trigger 
-their mapped Qsense/Qradar components.
+---
 
- RCDP team will make the required code changes in Qsense /Qradar to bake-in the configuration file in the code workflow to accomplish the above.
+📑 Draft Requirement Document
 
-In the future whenever request types are modified/added, The change management procedure should invoke an alert/trigger to update the configuration file.
+Project Title: Auto-classification Framework for ASK Compliance Queries
+
+
+---
+
+1. Business Problem
+
+The ASK Compliance portal is used by employees to raise compliance-related queries. Currently, users are required to manually select:
+
+Query Risk Type
+
+Query Request Type
+
+Information Classification
+
+
+This manual tagging process often leads to incorrect tagging by users, which results in:
+
+Queries being routed to the wrong team.
+
+Advisors spending additional time reading and re-routing queries to the correct team.
+
+Significant time wastage, delays in query resolution, and poor user experience.
+
+
+Incorrect tagging not only increases advisor workload but also affects compliance turnaround times. A smoother process is needed where these fields are auto-filled intelligently so that queries are routed correctly the first time. This will result in faster query resolution, reduced advisor overhead, and an improved user experience.
+
+
+---
+
+2. Problem Statement
+
+The current process is manual, error-prone, and inefficient. Misclassification and re-routing consume advisor bandwidth and delay resolution. There is also no robust fallback mechanism for incomplete queries, new request types, or misalignment scenarios.
+
+An automated solution is required to ensure correct tagging, smooth routing, and compliance adherence.
+
+
+---
+
+3. Project Requirements
+
+The solution must:
+
+1. Auto-fill classification fields (Query Risk Type, Query Request Type, Information Classification) in the ASK UI.
+
+Improve classification accuracy and reduce manual errors.
+
+Ensure queries are routed to the correct team/advisor on first attempt.
+
+Deliver faster and smoother query resolution for end users.
+
+
+
+2. Handle incomplete or ambiguous queries gracefully, with fallback mechanisms (e.g., advisor validation or escalation).
+
+
+3. Support MNPI-sensitive queries by flagging them for human intervention instead of automated routing.
+
+
+4. Cover all request types for deployment simultaneously – phased rollouts are not acceptable.
+
+
+5. Provide flexibility for future changes:
+
+Onboarding new request types with minimal disruption.
+
+Handling restructuring/renaming of existing request types.
+
+Reconciling historical data.
+
+
+
+6. Ensure compliance and transparency:
+
+Incorporate HSBC information classification policies.
+
+Maintain audit logs of auto-classification decisions.
+
+Provide explainability to regulators and stakeholders.
+
+
+
+
+
+---
+
+4. Technical Requirements
+
+Data Sources: ASK Compliance query history, HR data, historical tagging logs, HSBC policy docs.
+
+Training Data: Properly labeled ASK queries linked with HR data.
+
+Solution Hosting: To be finalized (cloud/on-prem, subject to IT policy).
+
+Additional Needs: Logging, monitoring, fallback logic, and explainability features.
+
+
+
+---
+
+5. Challenges
+
+Incorrect AI classification leading to misalignment with actual query intent.
+
+Handling incomplete or vague user queries.
+
+Managing MNPI-related queries requiring manual oversight.
+
+Reconciliation when request types are renamed/restructured.
+
+Incorporating new request types without existing labeled data.
+
+Resolving conflicts when multiple probable taggings are detected.
+
+
+
+---
+
+6. Timelines (Indicative)
+
+Phase 0 (Weeks 1–2): Requirement gathering & clarifications.
+
+Phase 1 (Weeks 3–6): Prototype model development (ML/GenAI/rules).
+
+Phase 2 (Weeks 7–10): Integration with ASK portal.
+
+Phase 3 (Weeks 11–12): Testing, validation, fallback mechanisms.
+
+Phase 4 (Weeks 13–14): Go-live & user training.
+
+
+
+---
+
+7. Queries & Clarifications (For Product Team)
+
+1. How should Risk Type → Request Type mappings be defined? Any priority rules?
+
+
+2. Should AI auto-submit classified queries, or should users be allowed to review/confirm?
+
+
+3. What is the current mitigation process when misclassification occurs manually?
+
+
+4. How should new request types be managed if no labeled data exists?
+
+
+5. How will restructuring/renaming of request types be reconciled with historical queries?
+
+
+6. In case of multiple probable taggings, should priority be based on business rules or advisor validation?
+
+
+7. Should MNPI-sensitive queries be routed via a separate workflow?
+
+
+8. Where will the final solution framework be hosted?
+
+
+
+
+---
+
+8. Possible Solutions (Internal Brainstorming – Not for Product Team)
+
+ML Classification Model → supervised approach on labeled queries.
+
+Gen-AI Lightweight Classification → open-source LLMs for semantic understanding.
+
+Rule-based Model → business rules and policies for specific risk types.
+
+Hybrid Agentic Framework → combine risk detection + classification models.
+
+User-personalized Classification → leveraging HR/user profiles + query history.
+
+
+
+---
+
+9. Success Metrics
+
+≥90% accuracy in auto-classification.
+
+≥30% reduction in advisor re-routing effort.
+
+≥25% improvement in query turnaround time.
+
+Zero compliance breaches due to classification errors.
+
+
+
+---
+
+10. Stakeholders & Dependencies
+
+Product Team → Define business rules and validate requirements.
+
+Analytics Team → Build, test, and deploy solution.
+
+Compliance SMEs → Validate risk types, MNPI handling, classification logic.
+
+IT/Infra Team → Deployment, hosting, and integration support.
+
+
+
+---
+
+✅ Now the Objectives are merged into Project Requirements, and the problem narrative reflects the user tagging → wrong routing → advisor re-routing → time wastage flow.
+
+
+---
+
+Do you want me to now recast this into a Word-style corporate template (with requirement tables, challenge tables, and timeline Gantt-style rows), so it’s directly shareable with your Product team?
+
