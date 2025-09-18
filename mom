@@ -1,224 +1,182 @@
-Got it 👍 Thanks for clarifying. You want the problem description expanded with the “incorrect tagging → wrong routing → time wastage” flow and the Objectives section merged into Project Requirements (so requirements carry both functional + outcome intent).
-
-Here’s the refined draft with those adjustments:
-
-
----
-
-📑 Draft Requirement Document
-
-Project Title: Auto-classification Framework for ASK Compliance Queries
-
-
----
-
-1. Business Problem
-
-The ASK Compliance portal is used by employees to raise compliance-related queries. Currently, users are required to manually select:
-
-Query Risk Type
-
-Query Request Type
-
-Information Classification
-
-
-This manual tagging process often leads to incorrect tagging by users, which results in:
-
-Queries being routed to the wrong team.
-
-Advisors spending additional time reading and re-routing queries to the correct team.
-
-Significant time wastage, delays in query resolution, and poor user experience.
-
-
-Incorrect tagging not only increases advisor workload but also affects compliance turnaround times. A smoother process is needed where these fields are auto-filled intelligently so that queries are routed correctly the first time. This will result in faster query resolution, reduced advisor overhead, and an improved user experience.
-
-
----
-
-2. Problem Statement
-
-The current process is manual, error-prone, and inefficient. Misclassification and re-routing consume advisor bandwidth and delay resolution. There is also no robust fallback mechanism for incomplete queries, new request types, or misalignment scenarios.
-
-An automated solution is required to ensure correct tagging, smooth routing, and compliance adherence.
-
-
----
-
-3. Project Requirements
-
-The solution must:
-
-1. Auto-fill classification fields (Query Risk Type, Query Request Type, Information Classification) in the ASK UI.
-
-Improve classification accuracy and reduce manual errors.
-
-Ensure queries are routed to the correct team/advisor on first attempt.
-
-Deliver faster and smoother query resolution for end users.
-
-
-
-2. Handle incomplete or ambiguous queries gracefully, with fallback mechanisms (e.g., advisor validation or escalation).
-
-
-3. Support MNPI-sensitive queries by flagging them for human intervention instead of automated routing.
-
-
-4. Cover all request types for deployment simultaneously – phased rollouts are not acceptable.
-
-
-5. Provide flexibility for future changes:
-
-Onboarding new request types with minimal disruption.
-
-Handling restructuring/renaming of existing request types.
-
-Reconciling historical data.
-
-
-
-6. Ensure compliance and transparency:
-
-Incorporate HSBC information classification policies.
-
-Maintain audit logs of auto-classification decisions.
-
-Provide explainability to regulators and stakeholders.
-
-
-
-
-
----
-
-4. Technical Requirements
-
-Data Sources: ASK Compliance query history, HR data, historical tagging logs, HSBC policy docs.
-
-Training Data: Properly labeled ASK queries linked with HR data.
-
-Solution Hosting: To be finalized (cloud/on-prem, subject to IT policy).
-
-Additional Needs: Logging, monitoring, fallback logic, and explainability features.
-
-
-
----
-
-5. Challenges
-
-Incorrect AI classification leading to misalignment with actual query intent.
-
-Handling incomplete or vague user queries.
-
-Managing MNPI-related queries requiring manual oversight.
-
-Reconciliation when request types are renamed/restructured.
-
-Incorporating new request types without existing labeled data.
-
-Resolving conflicts when multiple probable taggings are detected.
-
-
-
----
-
-6. Timelines (Indicative)
-
-Phase 0 (Weeks 1–2): Requirement gathering & clarifications.
-
-Phase 1 (Weeks 3–6): Prototype model development (ML/GenAI/rules).
-
-Phase 2 (Weeks 7–10): Integration with ASK portal.
-
-Phase 3 (Weeks 11–12): Testing, validation, fallback mechanisms.
-
-Phase 4 (Weeks 13–14): Go-live & user training.
-
-
-
----
-
-7. Queries & Clarifications (For Product Team)
-
-1. How should Risk Type → Request Type mappings be defined? Any priority rules?
-
-
-2. Should AI auto-submit classified queries, or should users be allowed to review/confirm?
-
-
-3. What is the current mitigation process when misclassification occurs manually?
-
-
-4. How should new request types be managed if no labeled data exists?
-
-
-5. How will restructuring/renaming of request types be reconciled with historical queries?
-
-
-6. In case of multiple probable taggings, should priority be based on business rules or advisor validation?
-
-
-7. Should MNPI-sensitive queries be routed via a separate workflow?
-
-
-8. Where will the final solution framework be hosted?
-
-
-
-
----
-
-8. Possible Solutions (Internal Brainstorming – Not for Product Team)
-
-ML Classification Model → supervised approach on labeled queries.
-
-Gen-AI Lightweight Classification → open-source LLMs for semantic understanding.
-
-Rule-based Model → business rules and policies for specific risk types.
-
-Hybrid Agentic Framework → combine risk detection + classification models.
-
-User-personalized Classification → leveraging HR/user profiles + query history.
-
-
-
----
-
-9. Success Metrics
-
-≥90% accuracy in auto-classification.
-
-≥30% reduction in advisor re-routing effort.
-
-≥25% improvement in query turnaround time.
-
-Zero compliance breaches due to classification errors.
-
-
-
----
-
-10. Stakeholders & Dependencies
-
-Product Team → Define business rules and validate requirements.
-
-Analytics Team → Build, test, and deploy solution.
-
-Compliance SMEs → Validate risk types, MNPI handling, classification logic.
-
-IT/Infra Team → Deployment, hosting, and integration support.
-
-
-
----
-
-✅ Now the Objectives are merged into Project Requirements, and the problem narrative reflects the user tagging → wrong routing → advisor re-routing → time wastage flow.
-
-
----
-
-Do you want me to now recast this into a Word-style corporate template (with requirement tables, challenge tables, and timeline Gantt-style rows), so it’s directly shareable with your Product team?
-
+Of course! Here is a project-agnostic description and the expected outcome for each section and subsection of your Model Documentation Template (MDT).
+1. Document Management Control
+This initial section is for administrative tracking and version control of the document itself. It ensures that every stakeholder knows who wrote the document, its current status, what has changed, and who has approved it.
+ * A. Author details: State the name, role, and team of the primary author(s) responsible for creating this document.
+ * B. Document details and status: Provide the document's title, unique identifier (like a GMIS ID), and its current status (e.g., Draft, In Review, Approved).
+ * C. Revisions: Maintain a log of changes. For each version, list the version number, date, author of the change, and a brief description of what was updated.
+ * D. Document review and approval: Record the names, roles, and dates of individuals who have reviewed and formally approved this document. This typically includes the model developer, business sponsor, and validator.
+ * E. Document issue details: Note the date the document was officially issued and to whom it was distributed.
+ * F. Document control: Briefly state the confidentiality level of the document (e.g., Internal Use Only, Confidential) and any handling instructions.
+ * G. Changes from previous MDT: If this model is an update to a pre-existing one, summarize the key differences between this MDT and the previous version. If it's a new model, state that this section is not applicable.
+2. Table of Contents
+This section provides a clear, navigable outline of the document.
+ * Description & Expectation: Generate an automated table of contents with clickable links to all sections and subsections. It should be updated just before finalizing the document to ensure all page numbers and headings are correct.
+3. Executive Summary
+This is the "elevator pitch" of the entire document. A senior leader should be able to read this section and understand the model's purpose, value, and key characteristics without diving into the technical details.
+ * 3.1. Introduction:
+   * Description: Set the business context. Briefly describe the business area or process this model will impact. Explain the high-level challenge or opportunity that necessitates this model.
+   * Expected Outcome: A concise paragraph introducing the business problem. For example, "Our manual process for identifying credit risk is time-consuming and inconsistent. This model aims to automate and standardize that process."
+ * 3.2. Business Requirements:
+   * Description: Summarize the core business problem and the proposed solution. Explain what the business needs the model to do and the expected benefits, such as cost savings, risk reduction, or efficiency gains.
+   * Expected Outcome: A brief overview of the current manual or inefficient process and a clear statement of how the proposed model will solve this problem. Quantify the expected benefits (e.g., "reduce manual review time by 40%").
+ * 3.3. Model Development and Testing:
+   * Description: Provide a high-level, non-technical overview of the modeling approach. Mention the type of data used, the chosen modeling technique (e.g., classification, regression), and the key findings from testing.
+   * Expected Outcome: A simple summary confirming the model was developed using sound practices and has been tested to meet performance standards. Example: "Using historical transaction data, we developed a logistic regression model. Testing shows an accuracy of 92% on the validation dataset."
+ * 3.4. Model Governance and Regulatory Compliance:
+   * Description: Briefly state that the model has been developed in accordance with the organization's model risk management policies and any relevant regulatory standards.
+   * Expected Outcome: A concluding statement that provides assurance of compliance and oversight. Example: "The model's development, testing, and implementation adhere to the GMRS 8.1 framework and have followed the established governance process."
+4. Business Requirements
+This section details the specific business needs the model is designed to fulfill.
+ * 4.1. Model Scope:
+   * Description: Clearly define the boundaries of the model. What is it intended to do, and just as importantly, what is it not intended to do?
+   * 4.1.1. In-Scope: List the specific use cases, products, customer segments, jurisdictions, and decision points the model will cover.
+   * 4.1.2. Out-of-Scope: Explicitly list anything that is not covered by the model to prevent misuse or incorrect assumptions.
+ * 4.2. Model Output and Use:
+   * Description: Explain how the model's output will be integrated into the business process. Describe what the model produces (e.g., a score, a classification, a forecast) and who will use this output to make what decisions. Contrast the "new" process with the model versus the "old" process.
+   * Expected Outcome: A clear description of the end-user's interaction with the model's results and how those results will influence their actions.
+ * 4.3. Model Network/Landscape:
+   * Description: Describe where this model fits within the broader technical and business ecosystem. Note any upstream systems that provide data inputs or downstream systems that consume the model's output.
+   * Expected Outcome: A simple explanation or diagram showing the model's dependencies and connections. This helps in understanding the potential impact of changes in other systems.
+   * 4.3.1. Model History: If this is a new model, describe the existing manual process it is replacing. If it's a redevelopment of an old model, describe the previous model and the reasons for its replacement.
+ * 4.4. Model Acceptance Criteria:
+   * Description: Define the specific, measurable criteria that the model must meet to be considered successful by the business. These are the benchmarks against which the model's performance will be judged.
+   * Expected Outcome: A list of quantitative and qualitative criteria. Examples: "Model accuracy must be >80%," "The model must reduce process time by at least 20 minutes per case," "Recommendations must be deemed useful by end-users in at least 90% of cases."
+ * 4.5. Model Use Environment:
+   * Description: Specify the technical environment where the model will operate. This includes the platform (e.g., Google Cloud Platform, on-premise server), key software dependencies, and data sources.
+   * Expected Outcome: A clear technical summary, often including an architecture diagram, showing the data flow from source systems to the model and then to the end-user application.
+5. Model Development Data
+This section provides a comprehensive overview of all data used to build, train, and test the model.
+ * 5.1. Data Sources and Data Controls:
+   * Description: List every data source used. For each source, specify the system of origin, the key data tables or files, and the controls in place to ensure data integrity and security.
+   * Expected Outcome: A table listing data sources, their owners, and a brief description of the data they provide.
+ * 5.2. Regulatory Constraints on Data:
+   * Description: Detail any legal, regulatory, or policy restrictions on the data being used, such as data privacy rules (e.g., GDPR), data residency requirements, or ethical considerations.
+   * Expected Outcome: A clear statement on data usage compliance and a record of any necessary approvals (e.g., from a Data Visa committee).
+ * 5.3. Data Preparation:
+   * Description: Describe all the steps taken to clean, transform, and prepare the raw data for modeling. This includes handling missing values, outlier treatment, and feature engineering.
+   * Expected Outcome: A detailed, replicable account of the data pre-processing pipeline.
+ * 5.4. Data Characteristics:
+   * Description: Provide a statistical summary of the final dataset used for modeling. This should include the size of the dataset (rows and columns), the time period it covers, and descriptive statistics for key variables (mean, median, standard deviation, etc.).
+   * Expected Outcome: A series of tables and charts that characterize the development data.
+ * 5.5. Data Quality Assessment:
+   * Description: Detail the results of the data quality analysis. Document any issues found, such as missing data, incorrect values, or biases, and explain how they were addressed.
+   * Expected Outcome: A summary of data quality checks, the percentage of data affected by issues, and the remediation steps taken.
+ * 5.7. Data Handling:
+   * Description: Explain the procedures for securely storing, accessing, and moving data throughout the model lifecycle, from development to production.
+   * Expected Outcome: A statement confirming that data handling practices comply with company policy and security standards.
+ * 5.8. Model Variables:
+   * Description: List all the final predictor variables (features) used in the model. For each variable, provide its definition, data type (e.g., numeric, categorical), and a brief justification for its inclusion.
+   * Expected Outcome: A comprehensive data dictionary for the model's inputs.
+6. Model Methodology
+This section explains the theoretical foundation of the model.
+ * 6.1. Feasible Methodologies:
+   * Description: Discuss the different types of modeling techniques that were considered for solving the business problem (e.g., logistic regression, gradient boosting, neural networks).
+   * Expected Outcome: A list of candidate model types and a brief explanation of why each was considered a plausible option.
+ * 6.2. Assessment of Methodologies:
+   * Description: Compare and contrast the candidate methodologies. Evaluate them based on criteria like potential performance, interpretability, computational cost, and ease of implementation.
+   * Expected Outcome: A rationale for why certain approaches were explored further while others were discarded.
+ * 6.3. Preferred Methodology:
+   * Description: State the final modeling methodology that was chosen and provide a detailed justification for this choice. Explain why it is the most suitable approach for this specific business problem and dataset.
+   * Expected Outcome: A clear declaration and defense of the selected modeling technique.
+7. Model Specification and Development
+This section describes the detailed process of building the selected model.
+ * 7.1. Model Variable and Characteristic Selection:
+   * Description: Detail the statistical or analytical process used to select the final set of predictor variables from the larger pool of available data. This could involve techniques like correlation analysis, feature importance scores, or business logic.
+   * Expected Outcome: An explanation of the feature selection process, including the criteria used to include or exclude variables.
+ * 7.2. Segmentation:
+   * Description: If the model was built on specific segments of the data (e.g., different models for different customer types or regions), describe the segmentation scheme and the rationale behind it. If no segmentation was used, state that.
+   * Expected Outcome: A clear definition of the data segments and the logic for their creation.
+ * 7.3. Candidate Models:
+   * Description: Describe the different versions of the model that were built and evaluated during the development process. This often involves comparing models with different hyperparameters or feature sets.
+   * Expected Outcome: A summary of the key experiments run and the performance of each candidate model.
+ * 7.4. Model Assumptions and Limitations:
+   * Description: This is a critical section. List all the assumptions made during model development (e.g., "the relationship between input X and the outcome is linear"). Also, list the known limitations of the model (e.g., "the model is not designed to perform well during extreme market downturns").
+   * Expected Outcome: A clear, honest table of all assumptions and limitations to ensure the model is used appropriately.
+ * 7.5. Model Development Process:
+   * Description: Provide a step-by-step narrative of the model build process, from data partitioning (train/test/validation split) to the final model training.
+   * Expected Outcome: A procedural summary that another data scientist could follow to understand how the final model was created.
+ * 7.6. User Engagement:
+   * Description: Document the interactions with business users and subject matter experts (SMEs) during the development phase. This shows that the model was built with business input and is not just a "black box."
+   * Expected Outcome: A summary of key meetings, feedback received, and how that feedback influenced the model's design.
+ * 7.7. Summary: Use of human judgement in model development:
+   * Description: Summarize the key decisions made by the model developer that required expert judgment. Examples include the choice of outlier treatment, feature engineering decisions, or the final model selection.
+   * Expected Outcome: A transparent account of where human expertise played a crucial role in the development process.
+8. Model Testing, Test Results and Test Conclusions
+This section provides the evidence that the model works as intended.
+ * 8.1. Tuning:
+   * Description: Explain the process of hyperparameter tuning. Describe the methodology used (e.g., grid search, random search), the parameters tuned, and the final values selected.
+   * Expected Outcome: A summary of the tuning process and the optimal hyperparameter settings.
+ * 8.2. Quantitative Tests:
+   * Description: Present the results of all statistical performance testing. This must include key metrics relevant to the model type (e.g., accuracy, precision, recall, F1-score for classification; R-squared, RMSE for regression) on unseen test and validation data.
+   * Expected Outcome: Tables, graphs (like ROC curves or confusion matrices), and a clear interpretation of the model's quantitative performance.
+ * 8.3. Qualitative Tests:
+   * Description: Describe the results of non-statistical testing. This often involves having business users or SMEs review the model's outputs for a set of test cases to confirm they are logical and make business sense (also known as user acceptance testing or UAT).
+   * Expected Outcome: A summary of UAT findings, including user feedback and sign-off.
+ * 8.4. Model Calibration and Adjustment:
+   * Description: If any post-processing adjustments were made to the model's raw output to better align with business expectations or to improve performance, describe them here.
+   * Expected Outcome: A clear explanation of any calibration steps taken.
+ * 8.5. User Engagement:
+   * Description: Document the involvement of end-users in the testing phase. This is where you would detail the UAT process and report the final feedback before go-live.
+   * Expected Outcome: A record of user testing, confirmation that the model meets user needs, and their formal sign-off.
+9. Final Model
+This section provides the definitive specification of the model that will be implemented.
+ * 9.1. Conceptual Soundness:
+   * Description: Provide an overall argument for why the model is conceptually sound. This means explaining why the chosen variables, methodology, and relationships make theoretical and business sense.
+   * Expected Outcome: A persuasive narrative that justifies the model's design from a first-principles perspective.
+ * 9.2. Model Architecture:
+   * Description: Present the final, detailed architecture of the model. For simpler models, this might be the equation and coefficients. For complex models, it would be a diagram showing layers and nodes.
+   * Expected Outcome: A complete technical specification of the final model.
+ * 9.3. Modelling Relationships:
+   * Description: Explain the relationships the model has learned between the key input variables and the output. This is crucial for interpretability. Techniques like SHAP values or partial dependence plots are often presented here.
+   * Expected Outcome: An analysis of the model's inner workings, explaining how it makes its predictions.
+ * 9.4. Model Analysis:
+   * Description: Provide any further analysis of the model's behavior, such as sensitivity analysis (how the output changes when inputs change) or benchmarking against alternative models.
+   * Expected Outcome: Deeper insights into the model's strengths and weaknesses under various conditions.
+ * 9.5. Model Confirmation:
+   * Description: A final, definitive statement confirming the chosen model, its version, and its performance metrics, as signed off by all relevant stakeholders (developer, validator, business owner).
+   * Expected Outcome: The formal record of the "champion" model that is approved for implementation.
+ * 9.6. Model Implementation:
+   * Description: Describe the plan for deploying the model into the production environment. This includes technical steps, the roles and responsibilities of the implementation team, and the timeline.
+   * Expected Outcome: A high-level implementation plan.
+10. Model Risks and Model Monitoring
+This section focuses on the long-term management of the model after it goes live.
+ * 10.1. Model Risks:
+   * Description: Identify potential risks associated with the model. This could include data quality degradation, model performance decay over time (concept drift), misuse of the model, or compliance risks.
+   * Expected Outcome: A list of potential risks and an assessment of their likelihood and impact.
+ * 10.2. Compensating Controls:
+   * Description: For each risk identified in 10.1, describe the controls or mitigation strategies in place. For example, a control for performance decay would be ongoing monitoring.
+   * Expected Outcome: A plan that shows how model risks will be actively managed.
+ * 10.3. On-going Model Monitoring Arrangements:
+   * Description: Detail the plan for monitoring the model's performance and stability in production. Specify what metrics will be tracked (e.g., accuracy, data input distributions), the frequency of monitoring, and the thresholds that would trigger an alert.
+   * Expected Outcome: A comprehensive monitoring plan.
+ * 10.4. Monitoring Process and Governance:
+   * Description: Define who is responsible for executing the monitoring plan, who reviews the results, and what the governance process is for deciding when a model needs to be retrained or decommissioned.
+   * Expected Outcome: A clear RACI (Responsible, Accountable, Consulted, Informed) chart for model monitoring.
+ * 10.5. Example Monitoring:
+   * Description: Provide a template or a mock-up of the monitoring dashboard or report that will be used.
+   * Expected Outcome: A visual example of what the monitoring output will look like.
+11. Model Governance and Regulatory Compliance
+This section documents the oversight and compliance activities surrounding the model.
+ * 11.1. Development Process:
+   * Description: Reference the governance forums, committees, and formal review/challenge sessions that occurred during the model's development.
+   * Expected Outcome: A record of the governance meetings and key decisions made.
+ * 11.2. Model Regulatory Compliance:
+   * Description: Explicitly state how the model complies with specific internal policies and external regulations.
+   * Expected Outcome: A checklist or statement mapping model features and documentation to specific compliance requirements.
+ * 11.3. Independent Validation:
+   * Description: Summarize the findings from the independent model validation team. Note any issues they raised and how they were resolved.
+   * Expected Outcome: A high-level summary of the validation report and confirmation that all findings have been addressed.
+ * 11.4. Model Approval:
+   * Description: Record the formal approval of the model for implementation by the designated model sponsor or committee.
+   * Expected Outcome: Evidence of final sign-off (e.g., meeting minutes, approval email).
+12. Appendix
+This section contains supplementary material.
+ * 12.1. Documentary Evidence:
+   * Description: Provide links to supporting documents, such as detailed data dictionaries, business requirement documents, meeting minutes, and sign-off emails.
+   * Expected Outcome: A centralized list of hyperlinks to all related project artifacts.
+ * 12.2. Glossary:
+   * Description: Define any technical terms, acronyms, or business-specific jargon used in the document.
+   * Expected Outcome: A glossary to help readers understand the terminology.
+ * 12.3 & 12.4. Model Regulatory Compliance [Specific Standards]:
+   * Description: If required, include detailed checklists or evidence demonstrating compliance with specific, named regulatory standards (like Basel or IFRS 9).
+   * Expected Outcome: Detailed compliance evidence tailored to specific regulations.
