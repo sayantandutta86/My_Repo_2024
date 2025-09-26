@@ -1,22 +1,109 @@
-Description:
-This section provides a comprehensive,step-by-step account of the processes and transformations applied to the raw data to construct the final dataset used for model training and testing. It moves beyond assessing data quality (Section 5.5) to document the active engineering and structuring of the data. The purpose is to ensure the entire data preparation pipeline is transparent, reproducible, and well-understood. This is critical for diagnosing issues, rebuilding the dataset, and onboarding new team members.
+Subject: Overview of QRadar Query Classification Framework and Its Business Value
 
-Expected Outcome:
-A clear,sequential narrative that allows a reader to exactly replicate the process of creating the modeling dataset from the original sources. The outcome is not just a cleaned dataset, but a documented recipe for creating it. This should include:
+Dear [Stakeholder Name],
 
-1. Data Integration & Joining Logic: A description of how multiple raw data tables or sources were combined.
-   · Example: "The customer demographic table was left-joined to the transaction summary table on the unique customer ID key. Records without a matching ID were excluded as they represented inactive accounts."
-   · Expected Artifact: SQL query snippets, code showing merge operations, or a diagram illustrating the data integration flow.
-2. Feature Engineering & Creation: Documentation of any new variables (features) that were created from existing raw variables.
-   · Example: "A new feature, days_since_last_purchase, was calculated from the last_purchase_date field. The raw text from product_description was used to create binary flags for key product categories."
-   · Expected Artifact: A list of derived features with their formulas or creation logic.
-3. Final Feature Set Definition: A clear definition of the exact set of variables that were fed into the model. This is the output of any feature selection processes.
-   · Example: "Following correlation analysis and feature importance ranking, the final model feature set contained 15 variables from the original 45."
-   · Expected Artifact: A list of the final feature names. This can be a reference to a more detailed table in Section 6.1 (Model Variables).
-4. Target Variable Construction: A precise explanation of how the model's target (or outcome) variable was defined and derived.
-   · Example: "The binary target variable is_churner was defined as a customer with no login activity for 90 consecutive days. This was derived from the user_activity_log table."
-5. Dataset Splitting Strategy: A description of how the final prepared dataset was partitioned for model development and validation (e.g., into training, testing, and validation/holdout sets).
-   · Example: "The data was split chronologically into a training set (Jan 2020 - Dec 2022), a test set (Jan 2023 - Jun 2023), and a holdout set (Jul 2023 - Dec 2023) to evaluate temporal robustness."
-   · Expected Artifact: Statement of the split ratio/method and the rationale for choosing it (e.g., random split, time-based split).
+I hope you’re doing well. As discussed, I’m sharing an overview of QRadar, the query classification framework we use to determine the complexity of incoming business queries and assess when GenAI can autonomously respond versus when human intervention is required.
 
-In essence, Section 5.6 answers the question: "From the raw data in Section 5.1, what specific steps did you take to create the clean, curated dataset that was actually used to train the model in Section 6?" The outcome is a reproducible data pipeline blueprint.
+
+---
+
+🔹 Purpose of QRadar
+
+QRadar is designed to analyze and categorize queries based on their intent and sensitivity. This helps ensure that sensitive or complex queries are flagged for manual review, while simpler ones are handled efficiently by GenAI.
+By doing so, it helps maintain response quality, risk control, and operational efficiency.
+
+
+---
+
+🔹 How QRadar Works
+
+QRadar evaluates each query using two key objectives:
+
+Obj-1: The query seeks approval, permission, or clearance
+
+Obj-2: The query contains references outside GenAI’s available knowledge base, such as attachments, external links, or specific identifiers (e.g., breach IDs, employee numbers)
+
+
+Based on these objectives, QRadar classifies queries into three levels of complexity:
+
+1. High Complexity
+
+Criteria: Query fulfills Obj-1 or Obj-2 and is related to sensitive scenarios (e.g., breaches, security alerts, compliance incidents)
+
+Action: Requires manual review due to sensitivity and potential risk
+
+Synthetic Example:
+
+> “A team member received a notification about a potential compliance breach (ECBM-134700). Could you confirm the reason and next steps?”
+
+
+
+
+2. Medium Complexity
+
+Criteria: Query fulfills Obj-1 or Obj-2, but not related to sensitive scenarios
+
+Action: May need review or confirmation by an advisor before finalizing
+
+Synthetic Examples:
+
+Obj-1 example:
+
+> “Requesting clearance to onboard a third-party consultant for a short-term analytics project.”
+
+
+
+Obj-2 example (external reference):
+
+> “Please refer to the attached quarterly report and confirm if the disclosed data aligns with the latest compliance requirements.”
+
+
+
+(This query references external attachments that GenAI cannot interpret, hence advisor review is required.)
+
+
+
+3. Low Complexity
+
+Criteria: Query does not fulfill Obj-1 or Obj-2 — typically informational or advisory in nature
+
+Action: Can be safely answered by GenAI with minimal oversight
+
+Synthetic Example:
+
+> “Where can I find the latest version of the data privacy policy?”
+
+
+
+
+
+---
+
+🔹 Business Value of QRadar
+
+Implementing QRadar can deliver measurable benefits:
+
+✅ Risk Mitigation: Ensures sensitive or high-stakes queries are escalated to human advisors
+
+✅ Efficiency: Allows GenAI to handle routine questions automatically
+
+✅ Accuracy: Improves overall response quality by routing complex queries appropriately
+
+✅ Governance: Strengthens auditability and oversight in decision-making
+
+✅ Scalability: Enables consistent handling of high query volumes
+
+
+
+---
+
+🔹 Recommendation
+
+Given these advantages, QRadar can be a valuable addition to your business query management process. It provides a structured approach to triaging and routing queries, balancing automation with control, and ensuring compliance and accuracy.
+
+I’d be happy to walk you through a demo or discuss how this can be tailored for your specific business needs.
+
+Best regards,
+[Your Full Name]
+Assistant Director – AI & Analytics
+Global Risk & Compliance, HSBC
