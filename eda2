@@ -1,5 +1,20 @@
-Thank you for sharing the UAT data.
-
-We have reviewed the results for the three LLM-as-a-judge metrics — Completeness, Toxicity, and Faithfulness. Overall, our team is aligned with the provided outcomes. The majority of the responses appear consistent with expectations, and no major concerns were identified.
-
-There were a few minor deviations observed in specific cases, which we have captured in our review sheet for reference. These deviations do not materially impact the overall assessment, and we agree with the methodology and evaluation approach adopted for R2.
+Of course. Here is a draft for the "Methodology" section of the model documentation for "Qradar," based on the information you provided and formatted in the style of the sample template.
+​6. Model Methodology
+​Qradar is a framework developed to evaluate the complexity of user queries to determine if a Generative AI can provide an effective response. The complexity of a query is a key factor in a Gen-AI's ability to generate accurate and acceptable answers. While simple queries can be handled well, complex requests—such as those seeking approval, requiring permission, or referencing information outside of its knowledge base—may necessitate additional support or human expertise. Qradar addresses this by assessing query complexity to ensure that such cases are appropriately flagged for an advisor's prudence.  
+​The methodology involves two primary objectives, complemented by an additional check for sensitive content.  
+​Objective 1: Identify Query Intent to Seek Approval or Permission
+​This objective is designed to detect queries where the user is seeking approval, permission, or clearance (e.g., "seeking your approval"). Such requests are inherently high in complexity as they demand nuanced decision-making that requires human intervention.  
+​The methodology for this objective is a rule-based approach founded on advanced Natural Language Processing (NLP) techniques:
+​Linguistic Parsing: The query is first parsed at the sentence level. Advanced NLP methods, including Parts-of-Speech (PoS) tagging, dependency parsing, and name-entity-recognition, are employed to understand the grammatical structure and context.  
+​High-Risk Term Identification: A predefined list of "High Risk Terms" (e.g., 'approval', 'clearance', 'permission', 'endorsement') was collated based on domain knowledge and data analysis. The analysis confirmed the prevalence of these terms in the dataset.  
+​Pattern Matching: The model identifies linguistic patterns where these high-risk terms are used in a context that implies a request for action. By analyzing PoS patterns (e.g., VERB + PRON + NOUN), the model can distinguish between a user actively seeking approval versus merely referencing the word in a different context. An exhaustive list of patterns was analyzed and manually evaluated to ensure they accurately captured high-risk queries.  
+​Objective 2: Detect References Outside of the Available Knowledge Base
+​The Gen-AI model cannot access external information, such as attachments provided with a query. This second objective identifies queries that reference external sources, as this increases the complexity and the risk of the model hallucinating an incorrect response.  
+​The methodology uses a combination of metadata analysis and keyword detection:
+​Metadata Analysis: The framework inspects query metadata to check if the attachment count is greater than zero.  
+​Content Analysis: Using regular expressions (regex) and keyword searches, the query text is scanned for explicit mentions of attachments or alphanumeric values that suggest a reference to an external source.  
+​Complexity Level Determination
+​The outputs from the two objectives, along with a sensitivity check, are combined to assign a final complexity level to the query.
+​Low Complexity: A query is marked as 'Low Complexity' and suitable for Gen-AI if it is flagged by neither Objective 1 nor Objective 2.  
+​Medium Complexity: A query is marked as 'Medium Complexity' if it is flagged by either Objective 1 or Objective 2.  
+​High Complexity: A query is designated as 'High Complexity' if it is flagged by either Objective 1 or Objective 2 and contains specific sensitive keywords like "breach" or "alert" that require priority attention.  
