@@ -1,1 +1,56 @@
-Context precision and context recall are metrics used to evaluate how well a large language model (LLM) handles and utilizes context in tasks like question answering, retrieval-augmented generation (RAG), or dialogue systems. Here's a concise explanation:Context PrecisionDefinition: Measures how relevant and accurate the context provided to or retrieved by the LLM is to the query or task.Focus: Ensures the model uses only the most relevant information, minimizing irrelevant or noisy context.Calculation:Precision = (Number of relevant context items retrieved) / (Total number of context items retrieved).Example: If an LLM retrieves 10 context documents and 8 are relevant to the query, context precision is 8/10 = 0.8 or 80%.Importance: High precision indicates the model avoids extraneous information, improving efficiency and reducing the risk of generating incorrect or off-topic responses.Context RecallDefinition: Measures how well the LLM retrieves or considers all the relevant context needed to answer a query or perform a task.Focus: Ensures the model captures all necessary information without missing critical details.Calculation:Recall = (Number of relevant context items retrieved) / (Total number of relevant context items available).Example: If there are 12 relevant documents in the dataset and the LLM retrieves 8 of them, context recall is 8/12 = 0.67 or 67%.Importance: High recall ensures the model has access to comprehensive information, reducing the chance of incomplete or partial answers.Key DifferencesPrecision focuses on the quality of retrieved context (relevance), while recall focuses on the quantity (completeness).A model with high precision but low recall might provide accurate but incomplete answers. Conversely, high recall but low precision might lead to verbose or irrelevant responses.Trade-Off and EvaluationF1 Score: Often, precision and recall are combined into an F1 score (harmonic mean) to balance the trade-off:F1 = 2 * (Precision * Recall) / (Precision + Recall).Evaluation in LLMs: These metrics are critical in RAG systems, where the model retrieves external context (e.g., documents) to generate answers. They help assess whether the retrieval component provides relevant and complete information to the LLM.Practical ExampleIn a RAG system answering, "What is the capital of France?":High Precision: The model retrieves only documents mentioning Paris as the capital, not irrelevant ones about French culture.High Recall: The model retrieves all relevant documents that confirm Paris as the capital, not missing any key sources.ChallengesContext Window Limits: LLMs have finite context windows, so prioritizing relevant context (precision) while capturing enough information (recall) is tricky.Evaluation Complexity: Determining "relevance" often requires human judgment or automated proxies (e.g., semantic similarity scores).Dynamic Contexts: In dialogues, the relevant context evolves, making precision and recall harder to measure consistently.Improving Precision and RecallBetter Retrieval: Use advanced retrieval methods like dense passage retrieval or semantic search.Fine-Tuning: Train the LLM to prioritize relevant context and ignore noise.Query Refinement: Reformulate user queries to improve retrieval accuracy.
+
+
+6. Model Methodology
+
+The Qradar framework is designed to assess the complexity of user queries to determine their suitability for handling by a Gen-AI assistant. The framework has 2 primary objectives, and the solution was developed, tested, and validated in a single comprehensive phase.
+
+When the historical query data from January 2021 to January 2024 became available for analysis, solution development for both objectives commenced. This data, containing 2,676 unique query records, was used for the development, testing, and validation of the rule-based system.
+
+The development process for Objective 1 involved creating a rule-based Natural Language Processing (NLP) methodology to identify queries where the user seeks approval, permission, or clearance. This process included significant experimentation with linguistic parsing techniques, Part-of-Speech (POS) tagging, and dependency patterns to detect specific sentence structures. The solution was refined through iterative validation and enhancement of the linguistic patterns and the high-risk term list.
+
+For Objective 2, a methodology was developed to identify queries that contain references to information outside the Gen-AI's knowledge base, such as attachments or alphanumeric codes. This involved analyzing query metadata and performing keyword searches for external references and sensitive terms.
+
+The final solution integrates the outcomes from both objectives to assign a complexity level, ensuring queries are appropriately routed.
+
+---
+
+All details of solution development for Objective 1 and Objective 2 are documented below –
+
+Objective 1 - Identify Query Intent Seeking Approval
+
+This solution identifies if a user query has the intent to seek approval, permission, or clearance from the advisor, marking it as higher complexity. The target is a binary outcome (seeking approval or not). The data for this objective were the 2,676 historical user queries from 2021-2024 where the text was in English.
+
+The methodology involves a multi-step, rule-based NLP process:
+
+1. Linguistic Parsing: Each query is parsed at the sentence level to identify sentences containing high-risk terms (e.g., 'approval', 'clearance', 'permission').
+2. Pattern Recognition: Using Part-of-Speech (POS) tags and Dependency Parsing, specific grammatical patterns around these high-risk terms are identified. Sample patterns include:
+   · Pattern-1: VERB + PRON (your) + NOUN (high-risk term)
+   · Pattern-2: VERB(ROOT) + NOUN + NOUN (high-risk term)
+   · Pattern-3: VERB(ROOT, seek) + NOUN (high-risk term)
+3. Flagging: Queries containing one or more of these validated patterns are flagged as fulfilling Objective 1 criteria.
+
+The list of high-risk terms and the linguistic patterns were refined and validated through manual analysis of the query corpus to ensure accuracy and coverage.
+
+Objective 2 - Identify External References & Sensitive Scenarios
+
+This solution flags queries that rely on information not accessible to the Gen-AI model, such as file attachments or external reference IDs, increasing the complexity and risk of an illusionary response.
+
+The methodology for Objective 2 uses a combined approach:
+
+· Rule-2: External References: Queries are flagged if they meet one of the following criteria:
+  · The query metadata shows an attachment count greater than zero.
+  · The query text mentions the existence of an attachment (e.g., "as attached").
+  · The query contains specific alphanumeric references (e.g., case IDs, account numbers) suggesting external context.
+· Sensitive Scenarios: Queries are also scanned for the presence of sensitive keywords (e.g., "breach", "alert") which, if found, contribute to a higher complexity classification.
+
+Complexity Level Determination
+
+The outcomes from Objective 1 and Objective 2 are synthesized to assign a final complexity level:
+
+· High Complexity: A query flagged by either Objective 1 or Objective 2 and containing sensitive keywords.
+· Medium Complexity: A query flagged by either Objective 1 or Objective 2, but containing no sensitive keywords.
+· Low Complexity: A query not flagged by either objective. These are deemed suitable for the Gen-AI assistant.
+
+The entire framework was validated using the available dataset from 2021-2024 to ensure the rules effectively categorized query complexity.
+
+---
