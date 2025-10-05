@@ -1,158 +1,38 @@
-import pandas as pd
-import numpy as np
+from openai import OpenAI
+import base64
+import os
 
-# === Load Excel File ===
-file_path = "your_input_file.xlsx"   # <-- Replace with your file path
-df = pd.read_excel(file_path)
+# ✅ Step 1: Initialize client
+client = OpenAI()  # assumes OPENAI_API_KEY is set
 
-# === Preprocessing ===
-df['Advice_Closed_Date'] = pd.to_datetime(df['Advice_Closed_Date'])
-df['Quarter'] = df['Advice_Closed_Date'].dt.to_period('Q')
+# ✅ Step 2: Local image path
+image_path = r"C:\Users\<YOUR_USERNAME>\Desktop\test_pic.jpg"  # 👈 change this
 
-# === 1. Compliance Breach Analysis (per advisor per quarter) ===
-compliance = (
-    df.groupby(['Assigned_To_Name', 'Quarter'])
-    .agg(
-        queries_closed=('Request_Reference', 'nunique'),
-        qa_done=('Qa_status', lambda x: (x == 'QA done').sum())
-    )
-    .reset_index()
-)
+# ✅ Step 3: Convert image to data URL
+ext = os.path.splitext(image_path)[1].lower()
+mime = "image/png" if ext == ".png" else "image/jpeg"
 
-compliance['qa_required'] = compliance['queries_closed'].apply(
-    lambda x: 1 if x == 1 else (2 if x >= 2 else 0)
-)
-compliance['breach'] = np.where(compliance['qa_done'] < compliance['qa_required'], 1, 0)
+with open(image_path, "rb") as f:
+    b64 = base64.b64encode(f.read()).decode("utf-8")
 
-breach_summary = (
-    compliance.groupby(['Assigned_To_Name', 'Quarter'])
-    .agg(
-        breached=('breach', 'sum'),
-        not_breached=('breach', lambda x: (x == 0).sum())
-    )
-    .reset_index()
-)
+data_url = f"data:{mime};base64,{b64}"
 
-# === 2. Overall QA Required ===
-overall_qa_required = compliance['qa_required'].sum()
-
-# === 3. Total QA Done ===
-overall_qa_done = (df['Qa_status'] == 'QA done').sum()
-
-# === 4. Feedback Distribution ===
-qa_feedback = (
-    df[df['Qa_status'] == 'QA done']
-    .groupby('Qa_decision')
-    .size()
-    .reset_index(name='count')
-)
-qa_feedback['percentage'] = 100 * qa_feedback['count'] / qa_feedback['count'].sum()
-
-# === 5. Advisors with breach + feedback transition Good → Not Good ===
-advisors_with_breach = compliance[compliance['breach'] == 1]['Assigned_To_Name'].unique()
-
-feedback_trends = (
-    df[df['Qa_status'] == 'QA done']
-    .sort_values(['Assigned_To_Name', 'Advice_Closed_Date'])
-    .groupby('Assigned_To_Name')['Qa_decision']
-    .apply(list)
-)
-
-def has_good_to_bad(feedback_list):
-    for i in range(1, len(feedback_list)):
-        if feedback_list[i-1] == "Good" and feedback_list[i] == "Not Good":
-            return True
-    return False
-
-advisors_feedback_transition = feedback_trends.apply(has_good_to_bad)
-advisors_final = [
-    adv for adv in advisors_with_breach
-    if advisors_feedback_transition.get(adv, False)
+# ✅ Step 4: Prepare message
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "Describe what you see in this image briefly."},
+            {"type": "image_url", "image_url": {"url": data_url}}
+        ]
+    }
 ]
-advisors_breach_and_transition_count = len(advisors_final)
 
-# === 6. Bias in QA selection ===
-bias_instances = []
-for (advisor, quarter), group in df.groupby(['Assigned_To_Name', 'Quarter']):
-    qa_group = group[group['Qa_status'] == 'QA done']
-    if qa_group.empty:
-        continue
-    distinct_types = group['Query Request Type'].nunique()
-    qa_types = qa_group['Query Request Type'].value_counts()
-    if distinct_types > 1 and qa_types.max() > 1:
-        bad_feedback_cases = qa_group[qa_group['Qa_decision'] == 'Not Good']
-        if not bad_feedback_cases.empty:
-            for _, row in bad_feedback_cases.iterrows():
-                bias_instances.append({
-                    'Assigned_To_Name': advisor,
-                    'Quarter': quarter,
-                    'Request_Reference': row['Request_Reference'],
-                    'Query Request Type': row['Query Request Type'],
-                    'Qa_decision': row['Qa_decision']
-                })
+# ✅ Step 5: Call GPT-4o
+response = client.chat.completions.create(
+    model="gpt-4o-mini",  # or "gpt-4o"
+    messages=messages,
+    temperature=0
+)
 
-bias_df = pd.DataFrame(bias_instances)
-
-# === Export to Excel with Charts ===
-output_file = "QA_Compliance_Report.xlsx"
-with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
-    breach_summary.to_excel(writer, sheet_name="Breach Summary", index=False)
-    pd.DataFrame({'Overall_QA_Required': [overall_qa_required]}).to_excel(writer, sheet_name="QA Required", index=False)
-    pd.DataFrame({'Overall_QA_Done': [overall_qa_done]}).to_excel(writer, sheet_name="QA Done", index=False)
-    qa_feedback.to_excel(writer, sheet_name="QA Feedback %", index=False)
-    pd.DataFrame({'Advisors_Breach_And_Transition': [advisors_breach_and_transition_count]}).to_excel(writer, sheet_name="Breach+Transition", index=False)
-    bias_df.to_excel(writer, sheet_name="Bias Instances", index=False)
-
-    workbook = writer.book
-
-    # === Pie Chart: QA Feedback ===
-    if not qa_feedback.empty:
-        ws = writer.sheets["QA Feedback %"]
-        chart = workbook.add_chart({'type': 'pie'})
-        chart.add_series({
-            'name': 'QA Feedback Distribution',
-            'categories': ['QA Feedback %', 1, 0, len(qa_feedback), 0],
-            'values': ['QA Feedback %', 1, 1, len(qa_feedback), 1],
-            'data_labels': {'percentage': True}
-        })
-        chart.set_title({'name': 'Good vs Not Good Feedback'})
-        ws.insert_chart('E2', chart)
-
-    # === Bar Chart: Breach per Advisor per Quarter ===
-    if not breach_summary.empty:
-        ws = writer.sheets["Breach Summary"]
-        chart = workbook.add_chart({'type': 'column'})
-        chart.add_series({
-            'name': 'Breached',
-            'categories': ['Breach Summary', 1, 0, len(breach_summary), 0],
-            'values': ['Breach Summary', 1, 2, len(breach_summary), 2],
-        })
-        chart.add_series({
-            'name': 'Not Breached',
-            'categories': ['Breach Summary', 1, 0, len(breach_summary), 0],
-            'values': ['Breach Summary', 1, 3, len(breach_summary), 3],
-        })
-        chart.set_title({'name': 'Compliance Breach per Advisor/Quarter'})
-        chart.set_x_axis({'name': 'Advisor/Quarter'})
-        chart.set_y_axis({'name': 'Count'})
-        ws.insert_chart('G2', chart)
-
-    # === Bar Chart: QA Required vs QA Done ===
-    ws = writer.sheets["QA Required"]
-    summary_df = pd.DataFrame({
-        'Metric': ['QA Required', 'QA Done'],
-        'Value': [overall_qa_required, overall_qa_done]
-    })
-    summary_df.to_excel(writer, sheet_name="QA Comparison", index=False)
-    ws2 = writer.sheets["QA Comparison"]
-    chart2 = workbook.add_chart({'type': 'column'})
-    chart2.add_series({
-        'name': 'QA Metrics',
-        'categories': ['QA Comparison', 1, 0, 2, 0],
-        'values': ['QA Comparison', 1, 1, 2, 1],
-        'data_labels': {'value': True}
-    })
-    chart2.set_title({'name': 'QA Required vs QA Done'})
-    ws2.insert_chart('D2', chart2)
-
-print("✅ QA Compliance Report with charts generated:", output_file)
+print("✅ Response:", response.choices[0].message.content)
