@@ -1,109 +1,35 @@
-Subject: Overview of QRadar Query Classification Framework and Its Business Value
-
-Dear [Stakeholder Name],
-
-I hope you’re doing well. As discussed, I’m sharing an overview of QRadar, the query classification framework we use to determine the complexity of incoming business queries and assess when GenAI can autonomously respond versus when human intervention is required.
+Here’s a professionally written, crisp, and Jira-ready description for User Story 2: Query attachment object extraction — based on your project’s theme (ADA Enhancements – Attachment Analysis):
 
 
 ---
 
-🔹 Purpose of QRadar
+User Story 2 – of Epic 1: Query Attachment Object Extraction
 
-QRadar is designed to analyze and categorize queries based on their intent and sensitivity. This helps ensure that sensitive or complex queries are flagged for manual review, while simpler ones are handled efficiently by GenAI.
-By doing so, it helps maintain response quality, risk control, and operational efficiency.
+Description:
+As a system admin, I want to enable secure extraction and transmission of ASK query attachment metadata and objects from the Appian server to the RCDP platform, so that downstream ADA pipelines can process and analyze attachment data for compliance-related insights.
 
+Acceptance Criteria (AC):
 
----
+AC1: The Appian service should extract both attachment metadata (e.g., file name, type, size, upload timestamp, query reference) and the binary object from user-submitted queries.
 
-🔹 How QRadar Works
+AC2: The extracted data and objects should be securely transmitted to the RCDP landing zone via an approved integration channel (e.g., SFTP, API, or message queue) with proper encryption and logging.
 
-QRadar evaluates each query using two key objectives:
+AC3: Each transmission should include unique identifiers linking the attachment to its parent query record in Appian.
 
-Obj-1: The query seeks approval, permission, or clearance
+AC4: The RCDP should acknowledge receipt and validation of each attachment object and metadata entry.
 
-Obj-2: The query contains references outside GenAI’s available knowledge base, such as attachments, external links, or specific identifiers (e.g., breach IDs, employee numbers)
-
-
-Based on these objectives, QRadar classifies queries into three levels of complexity:
-
-1. High Complexity
-
-Criteria: Query fulfills Obj-1 or Obj-2 and is related to sensitive scenarios (e.g., breaches, security alerts, compliance incidents)
-
-Action: Requires manual review due to sensitivity and potential risk
-
-Synthetic Example:
-
-> “A team member received a notification about a potential compliance breach (ECBM-134700). Could you confirm the reason and next steps?”
+AC5: In case of transmission failure or mismatch, retry and error-handling mechanisms must be implemented and logged for audit purposes.
 
 
+Notes:
 
+This story focuses on the data flow and integration between Appian and RCDP for attachment-level details.
 
-2. Medium Complexity
-
-Criteria: Query fulfills Obj-1 or Obj-2, but not related to sensitive scenarios
-
-Action: May need review or confirmation by an advisor before finalizing
-
-Synthetic Examples:
-
-Obj-1 example:
-
-> “Requesting clearance to onboard a third-party consultant for a short-term analytics project.”
-
-
-
-Obj-2 example (external reference):
-
-> “Please refer to the attached quarterly report and confirm if the disclosed data aligns with the latest compliance requirements.”
-
-
-
-(This query references external attachments that GenAI cannot interpret, hence advisor review is required.)
-
-
-
-3. Low Complexity
-
-Criteria: Query does not fulfill Obj-1 or Obj-2 — typically informational or advisory in nature
-
-Action: Can be safely answered by GenAI with minimal oversight
-
-Synthetic Example:
-
-> “Where can I find the latest version of the data privacy policy?”
-
-
+Downstream processing or enrichment in RCDP (e.g., metadata parsing, AI-based classification) will be handled in subsequent user stories.
 
 
 
 ---
 
-🔹 Business Value of QRadar
+Would you like me to also draft sub-tasks (2.1.1, 2.1.2) under this user story — for example, one for metadata extraction and another for object transfer implementation?
 
-Implementing QRadar can deliver measurable benefits:
-
-✅ Risk Mitigation: Ensures sensitive or high-stakes queries are escalated to human advisors
-
-✅ Efficiency: Allows GenAI to handle routine questions automatically
-
-✅ Accuracy: Improves overall response quality by routing complex queries appropriately
-
-✅ Governance: Strengthens auditability and oversight in decision-making
-
-✅ Scalability: Enables consistent handling of high query volumes
-
-
-
----
-
-🔹 Recommendation
-
-Given these advantages, QRadar can be a valuable addition to your business query management process. It provides a structured approach to triaging and routing queries, balancing automation with control, and ensuring compliance and accuracy.
-
-I’d be happy to walk you through a demo or discuss how this can be tailored for your specific business needs.
-
-Best regards,
-[Your Full Name]
-Assistant Director – AI & Analytics
-Global Risk & Compliance, HSBC
