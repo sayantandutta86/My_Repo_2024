@@ -1,87 +1,130 @@
-User Story 3 – of Epic 1: Attachment-based AI Response Proof of Concept
+Excellent — based on User Story 3 (Attachment-based AI Response Proof of Concept), I’ve broken it down into clear, logically sequenced subtasks, aligned to your Jira structure and keeping in mind how analytics teams typically execute such PoCs.
 
+Each subtask below includes title, goal, and short description, ready to paste directly into Jira.
+
+
+---
+
+🧩 User Story 3 Subtasks – Attachment-based AI Response PoC
+
+
+---
+
+Sub-Task 3.1.1 – Define PoC Scope, Dataset, and Evaluation Metrics
+
+Goal: Establish a clear experimental design and baseline.
 Description:
-As an Analytics Team member, I want to perform a proof of concept (PoC) in a local offline analytics environment using sample ASK queries and their associated attachments, so that we can demonstrate the impact of including attachment-derived context on the quality and relevance of AI-driven responses compared to when attachments are not used.
-
-This PoC will simulate end-to-end behavior of the enhanced ADA pipeline, focusing on attachment data understanding, extraction, and integration into query context prior to AI response generation.
+Identify and document the PoC scope, including number of sample ASK queries, attachment types to be covered, and expected output format. Define the evaluation framework — metrics to measure AI uplift (e.g., relevance score, factual accuracy, completeness). Prepare a small, diverse dataset of ASK queries with corresponding mock attachments representing real-world compliance scenarios.
 
 
 ---
 
-Scope & Approach:
+Sub-Task 3.1.2 – Attachment Data Collection and Preparation
 
-1. Use a representative set of sample ASK queries and corresponding mock attachments generated locally (not from production).
-
-
-2. Process and extract meaningful information from various attachment formats, including but not limited to:
-
-.msg – Email content, sender, receiver, subject, message body, and attachments within emails.
-
-.pdf / .docx – Text, tabular content, and key phrases.
-
-.xlsx – Structured data, headers, and summarized numerical insights.
-
-.png / .jpg – Use OCR or vision-based models to extract embedded text or label information.
+Goal: Prepare representative sample attachments.
+Description:
+Create or curate a set of attachments covering different file formats such as .msg, .pdf, .docx, .xlsx, .png, .jpg, and others. Ensure attachments mimic realistic ASK query scenarios (e.g., policy documents, regulatory notices, screenshots, email threads). Annotate and organize these attachments in a local storage structure for controlled testing.
 
 
+---
 
-3. Integrate extracted information into the query context provided to the AI model.
+Sub-Task 3.1.3 – Attachment Parsing and Content Extraction
 
+Goal: Build local extraction pipeline to derive meaningful text and metadata.
+Description:
+Develop Python-based scripts or notebooks to extract relevant content from each attachment type using appropriate techniques:
 
-4. Run two experiment tracks for each query:
+.msg → Extract subject, sender, recipients, timestamps, and email body.
 
-Track A: Without attachment-derived context.
+.pdf / .docx → Use text parsers (e.g., pdfplumber, docx2txt) to extract readable text and tables.
 
-Track B: With attachment-derived context.
+.xlsx → Extract cell content and summarize structured data.
 
-
-
-5. Measure and compare uplift across key AI response quality dimensions such as:
-
-Relevance to user query.
-
-Accuracy of interpretation.
-
-Completeness of answer.
-
-Reduction in “no answer” or hallucination cases.
-
-
+.png / .jpg → Apply OCR (e.g., pytesseract) to extract embedded text.
+Normalize and clean extracted content, storing outputs in a consistent format (JSON/CSV).
 
 
 
 ---
 
-Acceptance Criteria (AC):
+Sub-Task 3.1.4 – Attachment Content Summarization and Context Integration
 
-AC1: PoC pipeline is established locally with capability to process multiple attachment types listed above.
+Goal: Enrich user query with attachment-derived context.
+Description:
+Implement summarization and relevance filtering logic (e.g., using an LLM or keyword-based methods) to condense extracted text into concise, query-relevant snippets. Append or embed these snippets as contextual inputs to the AI model. Ensure integration logic avoids redundant or irrelevant content.
 
-AC2: Attachment content extraction achieves at least a baseline accuracy threshold for each format (as defined in team documentation).
 
-AC3: Comparative experiment results are documented, highlighting measurable uplift in AI-driven response quality when attachment context is included.
+---
 
-AC4: A final report (slides + summary document) is prepared outlining methodology, datasets, observed uplift, challenges, and recommendations for production implementation.
+Sub-Task 3.1.5 – AI Response Generation (With and Without Attachment Context)
 
-AC5: PoC code, extraction scripts, and configuration are stored in the team’s local Git repository for future reference and audit.
+Goal: Generate baseline and context-enriched AI responses.
+Description:
+Run the Gen-AI model (e.g., GPT or internal LLM) for two experiment tracks per query:
+
+Track A: Using only the query text.
+
+Track B: Using query text + attachment context.
+Collect outputs systematically, tagging each response with experiment metadata (query ID, attachment ID, run type).
 
 
 
 ---
 
-Dependencies:
+Sub-Task 3.1.6 – Comparative Evaluation and Uplift Analysis
 
-Runs in parallel with User Story 2 (Appian → RCDP attachment transfer) being implemented by the IT team.
+Goal: Quantify improvements in AI performance when attachments are used.
+Description:
+Evaluate responses using both automated metrics (semantic similarity, response relevance) and manual expert review for a sample subset. Compare uplift across key performance dimensions: accuracy, completeness, relevance, and hallucination reduction. Summarize key findings statistically and visually.
 
-Does not depend on RCDP integration; uses locally generated attachments for experimentation.
+
+---
+
+Sub-Task 3.1.7 – Documentation and Final Report
+
+Goal: Summarize PoC results, insights, and recommendations.
+Description:
+Prepare a final PoC report and presentation deck that includes:
+
+Experimental setup and methodology.
+
+Attachment extraction logic and coverage.
+
+Quantitative uplift metrics and qualitative observations.
+
+Key challenges and improvement suggestions.
+Store all related scripts, results, and documentation in the team’s local Git repository.
 
 
 
 ---
 
-Expected Deliverables:
+Sub-Task 3.1.8 – Knowledge Transfer and Next Steps
 
-Processed dataset of sample queries and extracted attachment text.
+Goal: Ensure findings are shared and actionable for next phase.
+Description:
+Conduct a walkthrough session with IT and product stakeholders (involved in User Story 2) to share findings, demonstrate PoC outputs, and recommend integration pathways for production deployment. Capture feedback and identify refinement areas for future phases.
 
-Comparative AI response quality report with quantitative uplift metrics.
 
-Presentation deck summarizing PoC outcomes and readiness for next phase integration.
+---
+
+✅ Summary of Subtask Flow
+
+Order	Subtask Title	Primary Owner	Output
+
+3.1.1	Define scope & metrics	Analytics Lead	PoC plan & dataset schema
+3.1.2	Prepare attachments	Data Analyst	Mock attachments
+3.1.3	Extract content	Data Engineer	Parsed text dataset
+3.1.4	Integrate context	Data Scientist	Query+context dataset
+3.1.5	Generate responses	AI Specialist	Response dataset
+3.1.6	Analyze uplift	Analytics Lead	Comparison results
+3.1.7	Report findings	Analytics Lead	PoC report & slides
+3.1.8	Knowledge transfer	Project Lead	Stakeholder sign-off
+
+
+
+---
+
+Would you like me to also create the summary line items for Jira (Epic > US > Subtask hierarchy) in Excel-style format — consistent with your screenshot (like 3.1.1, 3.1.2… under User Story 3)?
+I can structure them in a table that matches your template exactly, ready for direct copy-paste.
+
