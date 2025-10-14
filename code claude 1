@@ -1,518 +1,84 @@
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import warnings
-warnings.filterwarnings('ignore')
+Perfect, thanks Sayantan — that’s clear.
+Below is a polished, concise, email-suitable version that clearly differentiates between GCB5 (Senior Analytics Lead) and GCB6 (Junior Analyst), using HSBC-style professional tone and structure.
+Each activity has a heading and short description reflecting accountability and scope difference.
 
-class QAComplianceAnalyzer:
-    def __init__(self, excel_file_path):
-        """
-        Initialize the QA Compliance Analyzer
-        
-        Args:
-            excel_file_path (str): Path to the Excel file containing QA data
-        """
-        self.excel_file_path = excel_file_path
-        self.df = None
-        self.processed_df = None
-        
-    def load_and_preprocess_data(self):
-        """Load and preprocess the Excel data"""
-        try:
-            # Load the Excel file
-            self.df = pd.read_excel(self.excel_file_path)
-            print(f"Data loaded successfully. Shape: {self.df.shape}")
-            
-            # Preprocess the data
-            self.processed_df = self.df.copy()
-            
-            # Convert Advice_Closed_Date to datetime
-            self.processed_df['Advice_Closed_Date'] = pd.to_datetime(
-                self.processed_df['Advice_Closed_Date'], 
-                format='%m/%d/%Y %H:%M:%S',
-                errors='coerce'
-            )
-            
-            # Filter for 2024 data only
-            self.processed_df = self.processed_df[
-                self.processed_df['Advice_Closed_Date'].dt.year == 2024
-            ].copy()
-            
-            # Create quarter column
-            self.processed_df['Quarter'] = 'Q' + self.processed_df['Advice_Closed_Date'].dt.quarter.astype(str) + '_2024'
-            
-            # Create advisor-quarter combination
-            self.processed_df['Advisor_Quarter'] = (
-                self.processed_df['Assigned_To_Name'].astype(str) + '_' + 
-                self.processed_df['Quarter'].astype(str)
-            )
-            
-            # Categorize QA feedback
-            good_feedback = ['Good', 'Best Practice']
-            bad_feedback = ['Developing - Administration', 'Developing - Advice']
-            
-            self.processed_df['QA_Done'] = self.processed_df['Qa_Status'].fillna('').str.contains('QA Done', case=False)
-            self.processed_df['Has_QA_Decision'] = ~self.processed_df['Qa_Decision'].isna()
-            
-            self.processed_df['Feedback_Category'] = self.processed_df['Qa_Decision'].apply(
-                lambda x: 'Good' if x in good_feedback else ('Bad' if x in bad_feedback else 'Not QAed')
-            )
-            
-            print(f"2024 data filtered. Shape: {self.processed_df.shape}")
-            return True
-            
-        except Exception as e:
-            print(f"Error loading data: {str(e)}")
-            return False
-    
-    def calculate_compliance_breaches(self):
-        """Calculate QA compliance breaches per advisor per quarter"""
-        try:
-            # Group by advisor and quarter to count closed queries
-            advisor_quarter_stats = self.processed_df.groupby(['Assigned_To_Name', 'Quarter']).agg({
-                'Request_Reference': 'count',  # Total queries closed
-                'Has_QA_Decision': 'sum'  # Total QAs done
-            }).rename(columns={
-                'Request_Reference': 'Queries_Closed',
-                'Has_QA_Decision': 'QAs_Done'
-            }).reset_index()
-            
-            # Calculate required QAs based on compliance mandate
-            advisor_quarter_stats['QAs_Required'] = advisor_quarter_stats['Queries_Closed'].apply(
-                lambda x: 1 if x == 1 else (2 if x >= 2 else 0)
-            )
-            
-            # Determine compliance breach
-            advisor_quarter_stats['Compliance_Breach'] = (
-                advisor_quarter_stats['QAs_Done'] < advisor_quarter_stats['QAs_Required']
-            )
-            
-            # Calculate breach statistics
-            breach_summary = advisor_quarter_stats.groupby('Assigned_To_Name').agg({
-                'Compliance_Breach': ['sum', 'count']
-            }).round(2)
-            
-            breach_summary.columns = ['Breaches', 'Total_Instances']
-            breach_summary['Non_Breaches'] = breach_summary['Total_Instances'] - breach_summary['Breaches']
-            breach_summary['Breach_Percentage'] = (
-                breach_summary['Breaches'] / breach_summary['Total_Instances'] * 100
-            ).round(2)
-            breach_summary = breach_summary.reset_index()
-            
-            return advisor_quarter_stats, breach_summary
-            
-        except Exception as e:
-            print(f"Error calculating compliance breaches: {str(e)}")
-            return None, None
-    
-    def calculate_overall_qa_stats(self):
-        """Calculate overall QA statistics"""
-        try:
-            # Calculate total QAs required at query level
-            query_level_stats = self.processed_df.groupby(['Assigned_To_Name', 'Quarter']).agg({
-                'Request_Reference': 'count'
-            }).rename(columns={'Request_Reference': 'Queries_Closed'}).reset_index()
-            
-            # Apply compliance mandate at query level
-            total_qa_required = 0
-            for _, row in query_level_stats.iterrows():
-                if row['Queries_Closed'] == 1:
-                    total_qa_required += 1
-                elif row['Queries_Closed'] >= 2:
-                    total_qa_required += 2
-            
-            # Calculate actual QAs done
-            total_qa_done = self.processed_df['Has_QA_Decision'].sum()
-            
-            # Calculate percentage
-            qa_completion_percentage = (total_qa_done / total_qa_required * 100) if total_qa_required > 0 else 0
-            
-            overall_stats = {
-                'Total_QA_Required': total_qa_required,
-                'Total_QA_Done': total_qa_done,
-                'QA_Completion_Percentage': round(qa_completion_percentage, 2)
-            }
-            
-            return overall_stats
-            
-        except Exception as e:
-            print(f"Error calculating overall QA stats: {str(e)}")
-            return None
-    
-    def calculate_feedback_quality_stats(self):
-        """Calculate feedback quality statistics"""
-        try:
-            # Filter only QAed queries
-            qaed_queries = self.processed_df[self.processed_df['Has_QA_Decision']].copy()
-            
-            if len(qaed_queries) == 0:
-                return None
-            
-            # Calculate feedback statistics
-            feedback_stats = qaed_queries['Feedback_Category'].value_counts()
-            feedback_percentages = (qaed_queries['Feedback_Category'].value_counts(normalize=True) * 100).round(2)
-            
-            feedback_quality = pd.DataFrame({
-                'Count': feedback_stats,
-                'Percentage': feedback_percentages
-            }).reset_index()
-            feedback_quality.columns = ['Feedback_Type', 'Count', 'Percentage']
-            
-            return feedback_quality
-            
-        except Exception as e:
-            print(f"Error calculating feedback quality stats: {str(e)}")
-            return None
-    
-    def analyze_breach_feedback_correlation(self):
-        """Analyze correlation between compliance breaches and subsequent bad feedback"""
-        try:
-            # Get advisor quarter stats
-            advisor_quarter_stats, _ = self.calculate_compliance_breaches()
-            
-            # Get quarters in order
-            quarters = ['Q1_2024', 'Q2_2024', 'Q3_2024', 'Q4_2024']
-            
-            breach_feedback_analysis = []
-            
-            for advisor in self.processed_df['Assigned_To_Name'].unique():
-                advisor_data = advisor_quarter_stats[advisor_quarter_stats['Assigned_To_Name'] == advisor].copy()
-                advisor_queries = self.processed_df[self.processed_df['Assigned_To_Name'] == advisor].copy()
-                
-                breached_quarters = advisor_data[advisor_data['Compliance_Breach']]['Quarter'].tolist()
-                
-                # Check for bad feedback in subsequent quarters after breach
-                bad_feedback_after_breach = 0
-                bad_feedback_no_breach = 0
-                
-                for quarter in breached_quarters:
-                    quarter_idx = quarters.index(quarter) if quarter in quarters else -1
-                    if quarter_idx < len(quarters) - 1:  # Not the last quarter
-                        subsequent_quarters = quarters[quarter_idx + 1:]
-                        subsequent_bad_feedback = advisor_queries[
-                            (advisor_queries['Quarter'].isin(subsequent_quarters)) &
-                            (advisor_queries['Feedback_Category'] == 'Bad')
-                        ]
-                        if len(subsequent_bad_feedback) > 0:
-                            bad_feedback_after_breach += 1
-                            break
-                
-                # Check bad feedback for non-breached advisors
-                if not any(advisor_data['Compliance_Breach']):
-                    bad_feedback_queries = advisor_queries[advisor_queries['Feedback_Category'] == 'Bad']
-                    bad_feedback_no_breach = len(bad_feedback_queries)
-                
-                breach_feedback_analysis.append({
-                    'Advisor': advisor,
-                    'Had_Breach': any(advisor_data['Compliance_Breach']),
-                    'Bad_Feedback_After_Breach': bad_feedback_after_breach,
-                    'Bad_Feedback_Count': len(advisor_queries[advisor_queries['Feedback_Category'] == 'Bad'])
-                })
-            
-            breach_feedback_df = pd.DataFrame(breach_feedback_analysis)
-            
-            # Summary statistics
-            breached_advisors_bad_feedback = len(breach_feedback_df[
-                (breach_feedback_df['Had_Breach']) & (breach_feedback_df['Bad_Feedback_Count'] > 0)
-            ])
-            
-            non_breached_advisors_bad_feedback = len(breach_feedback_df[
-                (~breach_feedback_df['Had_Breach']) & (breach_feedback_df['Bad_Feedback_Count'] > 0)
-            ])
-            
-            return breach_feedback_df, breached_advisors_bad_feedback, non_breached_advisors_bad_feedback
-            
-        except Exception as e:
-            print(f"Error analyzing breach-feedback correlation: {str(e)}")
-            return None, 0, 0
-    
-    def analyze_repetitive_qa_bad_feedback(self):
-        """Analyze instances of repetitive QA on same request type leading to bad feedback"""
-        try:
-            repetitive_analysis = []
-            
-            for advisor in self.processed_df['Assigned_To_Name'].unique():
-                advisor_qaed = self.processed_df[
-                    (self.processed_df['Assigned_To_Name'] == advisor) & 
-                    (self.processed_df['Has_QA_Decision'])
-                ].copy()
-                
-                if len(advisor_qaed) < 2:
-                    continue
-                
-                # Group by request type to find repetitive QAs
-                request_type_counts = advisor_qaed['Request_Type'].value_counts()
-                
-                # Check for repetitive QAs (same request type QA'd multiple times)
-                repetitive_types = request_type_counts[request_type_counts >= 2].index.tolist()
-                
-                if repetitive_types:
-                    # Check if other request types were available
-                    all_request_types = self.processed_df[
-                        self.processed_df['Assigned_To_Name'] == advisor
-                    ]['Request_Type'].unique()
-                    
-                    other_types_available = len(all_request_types) > len(repetitive_types)
-                    
-                    # Check for bad feedback in repetitive QAs
-                    repetitive_bad_feedback = advisor_qaed[
-                        (advisor_qaed['Request_Type'].isin(repetitive_types)) &
-                        (advisor_qaed['Feedback_Category'] == 'Bad')
-                    ]
-                    
-                    if len(repetitive_bad_feedback) > 0 and other_types_available:
-                        repetitive_analysis.append({
-                            'Advisor': advisor,
-                            'Repetitive_Request_Types': repetitive_types,
-                            'Bad_Feedback_Count': len(repetitive_bad_feedback),
-                            'Other_Types_Available': other_types_available
-                        })
-            
-            return pd.DataFrame(repetitive_analysis)
-            
-        except Exception as e:
-            print(f"Error analyzing repetitive QA: {str(e)}")
-            return pd.DataFrame()
-    
-    def analyze_qa_timing_delay(self):
-        """Analyze QA timing delays"""
-        try:
-            # Add QA date quarter (assuming QA is done when Qa_Decision is recorded)
-            # Since we don't have QA date, we'll simulate this analysis structure
-            qaed_queries = self.processed_df[self.processed_df['Has_QA_Decision']].copy()
-            
-            if len(qaed_queries) == 0:
-                return pd.DataFrame()
-            
-            # For this analysis, we'll assume QA was done in the same quarter as closing
-            # In production, you'd have actual QA date
-            qaed_queries['QA_Quarter'] = qaed_queries['Quarter']  # Placeholder
-            
-            # Calculate quarter differences
-            qaed_queries['Quarter_Difference'] = 0  # Placeholder for same quarter
-            
-            # Calculate timing distribution
-            timing_distribution = qaed_queries['Quarter_Difference'].value_counts().sort_index()
-            timing_percentages = (timing_distribution / len(qaed_queries) * 100).round(2)
-            
-            timing_analysis = pd.DataFrame({
-                'Quarter_Difference': timing_distribution.index,
-                'Count': timing_distribution.values,
-                'Percentage': timing_percentages.values
-            })
-            
-            return timing_analysis
-            
-        except Exception as e:
-            print(f"Error analyzing QA timing: {str(e)}")
-            return pd.DataFrame()
-    
-    def analyze_timing_feedback_impact(self):
-        """Analyze impact of QA timing on feedback quality"""
-        try:
-            qaed_queries = self.processed_df[self.processed_df['Has_QA_Decision']].copy()
-            
-            if len(qaed_queries) == 0:
-                return pd.DataFrame()
-            
-            # Placeholder analysis (same quarter vs delayed)
-            qaed_queries['QA_Timing'] = 'Same Quarter'  # Placeholder
-            
-            timing_feedback = qaed_queries.groupby('QA_Timing')['Feedback_Category'].value_counts(normalize=True).unstack(fill_value=0) * 100
-            timing_feedback = timing_feedback.round(2).reset_index()
-            
-            return timing_feedback
-            
-        except Exception as e:
-            print(f"Error analyzing timing-feedback impact: {str(e)}")
-            return pd.DataFrame()
-    
-    def create_dashboard_summary(self, all_results):
-        """Create dashboard summary statistics"""
-        try:
-            dashboard_data = []
-            
-            # Overall statistics
-            overall_stats = all_results.get('overall_stats', {})
-            dashboard_data.append(['Total QA Required (2024)', overall_stats.get('Total_QA_Required', 0)])
-            dashboard_data.append(['Total QA Done (2024)', overall_stats.get('Total_QA_Done', 0)])
-            dashboard_data.append(['QA Completion Rate (%)', overall_stats.get('QA_Completion_Percentage', 0)])
-            
-            # Compliance breach statistics
-            breach_summary = all_results.get('breach_summary')
-            if breach_summary is not None and len(breach_summary) > 0:
-                total_advisors = len(breach_summary)
-                advisors_with_breaches = len(breach_summary[breach_summary['Breaches'] > 0])
-                avg_breach_rate = breach_summary['Breach_Percentage'].mean()
-                
-                dashboard_data.append(['Total Advisors', total_advisors])
-                dashboard_data.append(['Advisors with Compliance Breaches', advisors_with_breaches])
-                dashboard_data.append(['Average Breach Rate (%)', round(avg_breach_rate, 2)])
-            
-            # Feedback quality statistics
-            feedback_stats = all_results.get('feedback_quality')
-            if feedback_stats is not None and len(feedback_stats) > 0:
-                good_feedback_pct = feedback_stats[feedback_stats['Feedback_Type'] == 'Good']['Percentage'].iloc[0] if 'Good' in feedback_stats['Feedback_Type'].values else 0
-                bad_feedback_pct = feedback_stats[feedback_stats['Feedback_Type'] == 'Bad']['Percentage'].iloc[0] if 'Bad' in feedback_stats['Feedback_Type'].values else 0
-                
-                dashboard_data.append(['Good Feedback Rate (%)', good_feedback_pct])
-                dashboard_data.append(['Bad Feedback Rate (%)', bad_feedback_pct])
-            
-            # Breach-feedback correlation
-            dashboard_data.append(['Breached Advisors with Bad Feedback', all_results.get('breached_bad_feedback', 0)])
-            dashboard_data.append(['Non-Breached Advisors with Bad Feedback', all_results.get('non_breached_bad_feedback', 0)])
-            
-            dashboard_df = pd.DataFrame(dashboard_data, columns=['Metric', 'Value'])
-            return dashboard_df
-            
-        except Exception as e:
-            print(f"Error creating dashboard: {str(e)}")
-            return pd.DataFrame()
-    
-    def run_complete_analysis(self, output_file='QA_Compliance_Analysis_2024.xlsx'):
-        """Run complete QA compliance analysis and save to Excel"""
-        try:
-            # Load and preprocess data
-            if not self.load_and_preprocess_data():
-                return False
-            
-            print("Running comprehensive QA compliance analysis...")
-            
-            # Run all analyses
-            advisor_quarter_stats, breach_summary = self.calculate_compliance_breaches()
-            overall_stats = self.calculate_overall_qa_stats()
-            feedback_quality = self.calculate_feedback_quality_stats()
-            breach_feedback_df, breached_bad_feedback, non_breached_bad_feedback = self.analyze_breach_feedback_correlation()
-            repetitive_analysis = self.analyze_repetitive_qa_bad_feedback()
-            timing_analysis = self.analyze_qa_timing_delay()
-            timing_feedback_impact = self.analyze_timing_feedback_impact()
-            
-            # Compile all results
-            all_results = {
-                'advisor_quarter_stats': advisor_quarter_stats,
-                'breach_summary': breach_summary,
-                'overall_stats': overall_stats,
-                'feedback_quality': feedback_quality,
-                'breach_feedback_correlation': breach_feedback_df,
-                'breached_bad_feedback': breached_bad_feedback,
-                'non_breached_bad_feedback': non_breached_bad_feedback,
-                'repetitive_analysis': repetitive_analysis,
-                'timing_analysis': timing_analysis,
-                'timing_feedback_impact': timing_feedback_impact
-            }
-            
-            # Create dashboard summary
-            dashboard_summary = self.create_dashboard_summary(all_results)
-            
-            # Save to Excel with multiple tabs
-            with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-                # Dashboard Summary (first tab)
-                if not dashboard_summary.empty:
-                    dashboard_summary.to_excel(writer, sheet_name='Dashboard_Summary', index=False)
-                
-                # Analysis tabs
-                if advisor_quarter_stats is not None:
-                    advisor_quarter_stats.to_excel(writer, sheet_name='Advisor_Quarter_Stats', index=False)
-                
-                if breach_summary is not None:
-                    breach_summary.to_excel(writer, sheet_name='Compliance_Breaches', index=False)
-                
-                if overall_stats:
-                    pd.DataFrame([overall_stats]).to_excel(writer, sheet_name='Overall_QA_Stats', index=False)
-                
-                if feedback_quality is not None:
-                    feedback_quality.to_excel(writer, sheet_name='Feedback_Quality', index=False)
-                
-                if breach_feedback_df is not None:
-                    breach_feedback_df.to_excel(writer, sheet_name='Breach_Feedback_Correlation', index=False)
-                
-                if not repetitive_analysis.empty:
-                    repetitive_analysis.to_excel(writer, sheet_name='Repetitive_QA_Analysis', index=False)
-                
-                if not timing_analysis.empty:
-                    timing_analysis.to_excel(writer, sheet_name='QA_Timing_Analysis', index=False)
-                
-                if not timing_feedback_impact.empty:
-                    timing_feedback_impact.to_excel(writer, sheet_name='Timing_Feedback_Impact', index=False)
-            
-            print(f"Analysis complete! Results saved to: {output_file}")
-            
-            # Print summary to console
-            print("\n=== ANALYSIS SUMMARY ===")
-            if overall_stats:
-                print(f"Total QA Required (2024): {overall_stats['Total_QA_Required']}")
-                print(f"Total QA Done (2024): {overall_stats['Total_QA_Done']}")
-                print(f"QA Completion Rate: {overall_stats['QA_Completion_Percentage']}%")
-            
-            if breach_summary is not None and len(breach_summary) > 0:
-                print(f"Advisors with Compliance Breaches: {len(breach_summary[breach_summary['Breaches'] > 0])}/{len(breach_summary)}")
-                print(f"Average Breach Rate: {breach_summary['Breach_Percentage'].mean():.2f}%")
-            
-            print(f"Breached Advisors with Bad Feedback: {breached_bad_feedback}")
-            print(f"Non-Breached Advisors with Bad Feedback: {non_breached_bad_feedback}")
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error in complete analysis: {str(e)}")
-            return False
 
-# Usage Example and Main Execution
-def main():
-    """Main function to run the QA compliance analysis"""
-    
-    # Initialize the analyzer with your Excel file path
-    excel_file_path = "your_qa_data.xlsx"  # Replace with your actual file path
-    
-    try:
-        # Create analyzer instance
-        analyzer = QAComplianceAnalyzer(excel_file_path)
-        
-        # Run complete analysis
-        success = analyzer.run_complete_analysis("QA_Compliance_Analysis_2024.xlsx")
-        
-        if success:
-            print("QA Compliance Analysis completed successfully!")
-        else:
-            print("Analysis failed. Please check your data file and try again.")
-            
-    except FileNotFoundError:
-        print(f"Error: Could not find the Excel file at {excel_file_path}")
-        print("Please ensure the file path is correct and the file exists.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
+---
 
-if __name__ == "__main__":
-    main()
+Activities and Responsibilities
 
-# Instructions for use:
-"""
-1. Install required packages:
-   pip install pandas openpyxl numpy
+GCB5 – Senior Analytics Lead
 
-2. Replace 'your_qa_data.xlsx' with the actual path to your Excel file
+1. Stakeholder Engagement & Requirement Management
+Leads requirement scoping and refinement with business and IT stakeholders; ensures alignment on objectives and deliverables throughout the project lifecycle.
 
-3. Ensure your Excel file has the following columns:
-   - Request_Reference
-   - Assigned_To_Name
-   - Qa_Status
-   - Advice_Closed_Date (format: mm/dd/yyyy HH:MM:SS)
-   - Qa_Decision
-   - Request_Type
 
-4. Run the script:
-   python qa_compliance_analysis.py
+2. Solution Design & Development Oversight
+Owns end-to-end solution architecture, methodology selection, and development planning; provides technical direction and reviews outputs from junior analysts.
 
-5. The output will be saved as 'QA_Compliance_Analysis_2024.xlsx' with multiple tabs:
-   - Dashboard_Summary: Key metrics overview
-   - Advisor_Quarter_Stats: Detailed advisor statistics by quarter
-   - Compliance_Breaches: Breach analysis per advisor
-   - Overall_QA_Stats: Overall QA statistics
-   - Feedback_Quality: Quality feedback analysis
-   - Breach_Feedback_Correlation: Correlation between breaches and feedback
-   - Repetitive_QA_Analysis: Analysis of repetitive QA patterns
-   - QA_Timing_Analysis: QA timing delay analysis
-   - Timing_Feedback_Impact: Impact of timing on feedback quality
 
-6. The script will also print a summary to the console for quick review.
-"""
+3. Use-Case Exploration & Innovation
+Identifies new analytical opportunities, drives experimentation, and evaluates feasibility of advanced methodologies aligned to business priorities.
+
+
+4. Testing & Validation Governance
+Oversees SIT, UAT, and pilot testing phases; ensures robustness of model integration, output quality, and documentation for audit readiness.
+
+
+5. Performance Monitoring & Data Insights
+Designs monitoring frameworks, reviews analytical outcomes, and provides actionable insights to enhance product and process performance.
+
+
+6. Data Management & Quality Control
+Supervises data reconciliation and validation across environments (SIT, UAT, Prod); ensures adherence to governance and compliance standards.
+
+
+7. Project Planning & Delivery Coordination
+Defines timelines, dependencies, and resource plans; drives progress tracking and risk mitigation across delivery teams.
+
+
+8. Documentation & Governance Reporting
+Ensures project documentation, validation logs, and governance reports are updated and aligned with audit and compliance requirements.
+
+
+
+
+---
+
+GCB6 – Junior Analyst
+
+1. Solution Development & Implementation
+Executes coding, data processing, and unit testing activities as per defined methodologies and under senior supervision.
+
+
+2. Use-Case Experimentation
+Conducts exploratory analysis and small-scale experiments to test feasibility of analytical approaches defined by senior leads.
+
+
+3. Testing & Validation Support
+Performs hands-on testing of models and dashboards; validates integration results and raises issues for review.
+
+
+4. Monitoring & Data Visualization
+Develops data aggregation and visualization outputs to support ongoing performance tracking and insight generation.
+
+
+5. Data Management & Reconciliation
+Performs reconciliation and quality checks across SIT, UAT, and production environments to ensure data integrity.
+
+
+6. Documentation & Compliance Support
+Prepares supporting documentation, testing logs, and data quality records for governance review and audit purposes.
+
+
+
+
+---
+
+Would you like me to:
+
+Add a one-line summary at the top (for example: “Below is a structured summary differentiating responsibilities between GCB5 and GCB6 analytics roles”) — suitable for your email to the global head?
+
+Or keep it straight with the headings as-is?
+
+
