@@ -1,34 +1,157 @@
-from openai import OpenAI
-import base64
+Perfect ✅ — that gives a very clear roadmap.
 
-# Initialize the client (ensure OPENAI_API_KEY is set)
-client = OpenAI()
+Given your confirmations, here’s the continuation of the “ADA Enhancements – Attachment Analysis” Epic, with User Story 4 and User Story 5 written in the same professional, Jira-aligned format as the earlier stories.
 
-# 🔹 Step 1: Set your local image path
-image_path = r"C:\Users\<YOUR_USERNAME>\Desktop\test.jpg"  # ⬅️ change to your actual file name
+These two stories represent the transition from local PoC → integration in CMLP (RCDP dev) → UAT and production readiness with GPT-4o integration.
 
-# 🔹 Step 2: Convert image to base64 and make a data URL
-with open(image_path, "rb") as f:
-    image_bytes = f.read()
-base64_image = base64.b64encode(image_bytes).decode("utf-8")
-data_url = f"data:image/jpeg;base64,{base64_image}"
 
-# 🔹 Step 3: Build the messages
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "text", "text": "Describe what you see in this image."},
-            {"type": "image_url", "image_url": {"url": data_url}},
-        ],
-    }
-]
+---
 
-# 🔹 Step 4: Call GPT-4o
-response = client.chat.completions.create(
-    model="gpt-4o-mini",  # or "gpt-4o"
-    messages=messages,
-)
+🧩 User Story 4 – of Epic 1: Integration of Attachment Analysis Pipeline in CMLP Environment
 
-# 🔹 Step 5: Print the description
-print(response.choices[0].message.content)
+Description:
+As an IT and Analytics delivery team, we want to integrate the attachment extraction and AI enrichment pipeline into the CMLP (RCDP development) environment, so that the PoC logic can be operationalized on real ASK query and attachment data within the enterprise platform.
+
+This will enable the ADA pipeline to leverage attachment-derived content dynamically during response generation and validate seamless interoperability across components.
+
+
+---
+
+Scope & Approach
+
+1. Migrate and adapt the attachment parsing, summarization, and AI-context enrichment modules from the local PoC setup (User Story 3) into the CMLP environment.
+
+
+2. Configure CMLP ingestion jobs to pull attachments and metadata from Appian (as per User Story 2) and process them through the analytics enrichment layer.
+
+
+3. Implement API-based integration for GPT-4o model invocation, ensuring proper authentication, data masking, and prompt governance controls.
+
+
+4. Establish data storage and retrieval structures for extracted attachment context and AI response caching in RCDP.
+
+
+5. Conduct controlled tests using a limited volume of real ASK queries and attachments to validate system behavior, performance, and correctness.
+
+
+
+
+---
+
+Acceptance Criteria (AC)
+
+AC1: All attachment formats supported in PoC (.msg, .pdf, .docx, .xlsx, .png, .jpg) are processed successfully within CMLP.
+
+AC2: Pipeline runs end-to-end, consuming Appian-origin data and producing enriched query context stored in RCDP.
+
+AC3: GPT-4o model integration via secure API call is successfully established with audit logging and error handling.
+
+AC4: Response generation latency and accuracy are within acceptable thresholds as defined by ADA performance KPIs.
+
+AC5: Results validated by Analytics and IT jointly against benchmark queries from the PoC.
+
+
+
+---
+
+Dependencies
+
+Depends on User Story 2 for attachment transfer to RCDP.
+
+Builds on User Story 3 learnings and model optimization parameters.
+
+
+
+---
+
+Deliverables
+
+Fully functional attachment-aware ADA pipeline in CMLP.
+
+API configuration and connectivity documentation for GPT-4o integration.
+
+Validation report comparing local PoC vs CMLP outputs.
+
+Deployment checklist for UAT readiness.
+
+
+
+---
+
+
+---
+
+🧩 User Story 5 – of Epic 1: UAT, Performance Validation, and Production Readiness
+
+Description:
+As a project owner and governance stakeholder, I want to conduct comprehensive User Acceptance Testing (UAT), performance benchmarking, and compliance validation of the integrated attachment-aware ADA pipeline in the CMLP environment, so that the solution is ready for production deployment with GPT-4o integration.
+
+This ensures functional reliability, response quality improvement, and adherence to enterprise AI and data governance standards.
+
+
+---
+
+Scope & Approach
+
+1. Execute UAT cycles covering diverse ASK query types (with and without attachments).
+
+
+2. Evaluate AI response accuracy, context relevance, and latency improvements across attachment-enabled vs. baseline scenarios.
+
+
+3. Validate GPT-4o prompt safety, token control, and masking of sensitive data during inference.
+
+
+4. Conduct system performance and load testing to ensure stability under realistic query volume.
+
+
+5. Obtain approvals from AI Governance, Data Security, and Compliance teams for production rollout.
+
+
+
+
+---
+
+Acceptance Criteria (AC)
+
+AC1: UAT completed with ≥ 90% success rate across all defined functional and non-functional test cases.
+
+AC2: AI response quality demonstrates measurable uplift (≥ X% improvement in relevance and completeness over baseline).
+
+AC3: No P1 or P2 defects in attachment processing, AI inference, or data handling.
+
+AC4: GPT-4o integration certified as compliant per enterprise LLM governance checklist.
+
+AC5: Formal sign-off obtained for production deployment from stakeholders (IT, Analytics, Governance).
+
+
+
+---
+
+Dependencies
+
+Requires successful completion of User Story 4 integration in CMLP.
+
+Relies on Analytics for test design and evaluation metrics.
+
+
+
+---
+
+Deliverables
+
+UAT Test Plan and Execution Report.
+
+Model performance uplift summary (with vs. without attachments).
+
+GPT-4o compliance validation and approval artifacts.
+
+Production readiness checklist and sign-off document.
+
+
+
+---
+
+Would you like me to now draft the Sub-Tasks (4.1.1 – 4.1.n and 5.1.1 – 5.1.n) in Excel-style table format, aligned to your Jira plan — similar to how we did for User Story 3?
+They’d include all implementation, testing, and governance subtasks (around 6–8 for each story).
+
